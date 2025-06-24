@@ -175,8 +175,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # 404 handler
 handler404 = 'django.views.defaults.page_not_found'
-
-if DEBUG:
-    from django.conf.urls.static import static
-    urlpatterns += static(STATIC_URL, document_root=STATIC_ROOT)
-    urlpatterns += static(MEDIA_URL, document_root=MEDIA_ROOT)
