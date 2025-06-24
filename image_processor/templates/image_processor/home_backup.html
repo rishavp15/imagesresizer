@@ -1,0 +1,629 @@
+{% extends 'image_processor/base.html' %}
+{% load crispy_forms_tags %}
+{% load image_filters %}
+
+{% block title %}Home - Images Resizer{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #1976d2, #1565c0);
+        color: white;
+        padding: 40px 0;
+        margin-bottom: 40px;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+        font-weight: 400;
+        margin-bottom: 16px;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-bottom: 24px;
+    }
+    
+    .important-features-box {
+        background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+        border: 2px solid #28a745;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 32px;
+        box-shadow: 0 4px 16px rgba(40, 167, 69, 0.15);
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .feature-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .feature-icon {
+        color: #28a745;
+        font-size: 24px;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+    
+    .main-image-processor {
+        background-color: var(--md-surface-color);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 32px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 2px solid #e3f2fd;
+    }
+    
+    .improved-preview {
+        border: 2px dashed #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: linear-gradient(45deg, #f8f9fa, #ffffff);
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .improved-preview.has-image {
+        border-color: #1976d2;
+        background: #e3f2fd;
+    }
+    
+    .preview-content img {
+        max-width: 100%;
+        max-height: 150px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .quick-process-btn {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+        border-radius: 24px;
+        padding: 12px 24px;
+        font-weight: 500;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+    
+    .quick-process-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+        color: white;
+    }
+    
+    .soft-alert {
+        background: linear-gradient(45deg, #fff3cd, #fef3bd);
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 0.875rem;
+        color: #856404;
+        margin-top: 8px;
+    }
+    
+    .how-to-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 32px;
+        margin-bottom: 32px;
+    }
+    
+    .step-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+    
+    .step-number {
+        background: #1976d2;
+        color: white;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 16px;
+        flex-shrink: 0;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+    
+    .feature-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-4px);
+    }
+    
+    .feature-card-icon {
+        color: #1976d2;
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+    
+    .main-title {
+        font-size: 2.5rem;
+        font-weight: 300;
+        text-align: center;
+        margin-bottom: 16px;
+        color: #1976d2;
+    }
+    
+    @media (max-width: 768px) {
+        .main-title {
+            font-size: 2rem;
+        }
+        
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Main Title -->
+<div class="container">
+    <h1 class="main-title">Image Resizer</h1>
+</div>
+
+<!-- Important Features Box -->
+<div class="container">
+    <div class="important-features-box">
+        <h3 class="text-center mb-4" style="color: #28a745; font-weight: 500;">
+            <i class="material-icons me-2" style="font-size: 28px; vertical-align: middle;">security</i>
+            Important Features
+        </h3>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <i class="material-icons feature-icon">lock</i>
+                    <div>
+                        <strong>Privacy Guaranteed</strong><br>
+                        <span class="text-muted">We never save or store your images. All processing is done securely and your data is deleted immediately after processing.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <i class="material-icons feature-icon">collections</i>
+                    <div>
+                        <strong>Bulk Processing</strong><br>
+                        <span class="text-muted">Process up to 10 images simultaneously with different settings for each image.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Image Processor -->
+<div class="container">
+    <div class="main-image-processor">
+        <h4 class="mb-4 text-primary">
+            <i class="material-icons me-2">photo_size_select_large</i>
+            Image Processor
+        </h4>
+        
+        <form method="post" enctype="multipart/form-data" id="main-upload-form">
+            {% csrf_token %}
+            
+            <div class="row">
+                <!-- Image Upload and Preview -->
+                <div class="col-md-5">
+                    <label class="form-label fw-bold">Upload Image</label>
+                    <div class="improved-preview" id="main-preview-area">
+                        <input type="file" 
+                               class="form-control" 
+                               name="image_0" 
+                               id="main_image_input"
+                               accept="image/*"
+                               style="opacity: 0; position: absolute; width: 100%; height: 100%; z-index: 2; cursor: pointer;">
+                        
+                        <div class="preview-content" id="main-preview-content">
+                            <div class="upload-placeholder">
+                                <i class="material-icons text-primary mb-3" style="font-size: 48px;">cloud_upload</i>
+                                <h5 class="text-primary">Drag & Drop Your Image</h5>
+                                <p class="text-muted mb-3">or click to browse</p>
+                                <span class="badge bg-primary bg-opacity-10 text-primary">JPG, PNG, GIF supported</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Remove button for uploaded image -->
+                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 d-none" id="main-remove-btn" style="z-index: 10;">
+                            <i class="material-icons" style="font-size: 16px;">close</i>
+                        </button>
+                    </div>
+                    
+                    <!-- Image Info -->
+                    <div class="mt-3 d-none" id="main-image-info">
+                        <div class="card">
+                            <div class="card-body p-3">
+                                <h6 class="card-title mb-2">Image Information</h6>
+                                <div class="row text-sm">
+                                    <div class="col-6">
+                                        <strong>Dimensions:</strong><br>
+                                        <span id="main-dimensions">-</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <strong>File Size:</strong><br>
+                                        <span id="main-filesize">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings -->
+                <div class="col-md-7">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="main_width" class="form-label fw-bold">Width (pixels) *</label>
+                            <input type="number" class="form-control" name="output_width_0" id="main_width" placeholder="e.g. 1920" min="1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="main_height" class="form-label fw-bold">Height (pixels) *</label>
+                            <input type="number" class="form-control" name="output_height_0" id="main_height" placeholder="e.g. 1080" min="1" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="main_file_size" class="form-label fw-bold">Target File Size (KB)</label>
+                            <input type="number" class="form-control" name="target_file_size_kb_0" id="main_file_size" placeholder="e.g. 500 (optional)" min="50" max="10240">
+                            <div class="form-text">Leave empty for best quality</div>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="button" class="btn quick-process-btn w-100" id="quick-process-btn">
+                                <i class="material-icons me-1" style="font-size: 18px;">flash_on</i>
+                                Quick Process
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="soft-alert d-none" id="process-alert">
+                        <i class="material-icons me-2" style="font-size: 16px; vertical-align: middle;">info</i>
+                        You can process all your images at once with different settings for optimal results.
+                    </div>
+                    
+                    <!-- Advanced Options -->
+                    <div class="card mt-3">
+                        <div class="card-header py-2">
+                            <span class="fw-semibold text-secondary">
+                                <i class="material-icons me-1" style="font-size: 18px; vertical-align: middle;">tune</i>
+                                Advanced Options
+                            </span>
+                        </div>
+                        <div class="card-body py-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="main_dpi" class="form-label">DPI (Dots Per Inch)</label>
+                                    <input type="number" class="form-control" name="dpi_0" id="main_dpi" value="300" min="72" max="600">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Process Button -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg px-5" id="main-process-btn" disabled>
+                            <i class="material-icons me-2">transform</i>
+                            Process Image
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hidden fields -->
+            <input type="hidden" name="dimension_unit_0" value="pixels">
+            <input type="hidden" name="hidden_width_0" id="hidden_width_0">
+            <input type="hidden" name="hidden_height_0" id="hidden_height_0">
+        </form>
+        
+        <!-- Add More Images Option -->
+        <div class="text-center mt-4 pt-3 border-top">
+            <p class="text-muted mb-2">Need to process multiple images?</p>
+            <a href="?num_images=5" class="btn btn-outline-primary">
+                <i class="material-icons me-1">add_circle</i>
+                Switch to Bulk Mode
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- How To Section -->
+<div class="container">
+    <div class="how-to-section">
+        <h3 class="text-center mb-4">How to Resize Your Images</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div>
+                        <strong>Upload Your Image</strong><br>
+                        <span class="text-muted">Drag and drop or click to select your image file (JPG, PNG, GIF)</span>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <div>
+                        <strong>Set Dimensions</strong><br>
+                        <span class="text-muted">Enter your desired width and height in pixels</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div>
+                        <strong>Choose File Size (Optional)</strong><br>
+                        <span class="text-muted">Set target file size in KB for compression optimization</span>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">4</div>
+                    <div>
+                        <strong>Process & Download</strong><br>
+                        <span class="text-muted">Click process and download your resized image instantly</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hero Section with Professional Description -->
+<section class="hero-section">
+    <div class="container text-center">
+        <h2 class="hero-title">Professional Image Resizer</h2>
+        <p class="hero-subtitle">
+            Resize multiple images by specifying output size in pixels and target file size (KB).
+        </p>
+        <div class="row">
+            <div class="col-md-4">
+                <i class="material-icons" style="font-size: 48px;">collections</i>
+                <h5 class="mt-2">Bulk Processing</h5>
+                <p>Upload and process up to {{ max_images }} images at once</p>
+            </div>
+            <div class="col-md-4">
+                <i class="material-icons" style="font-size: 48px;">photo_size_select_large</i>
+                <h5 class="mt-2">Pixel Dimensions</h5>
+                <p>Set width and height in pixels for each image</p>
+            </div>
+            <div class="col-md-4">
+                <i class="material-icons" style="font-size: 48px;">download</i>
+                <h5 class="mt-2">Easy Download</h5>
+                <p>Download individually or as a ZIP file</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<div class="container">
+    <h3 class="text-center mb-5">Why Choose Our Image Resizer?</h3>
+    <div class="features-grid">
+        <div class="feature-card">
+            <i class="material-icons feature-card-icon">security</i>
+            <h5>100% Secure</h5>
+            <p class="text-muted">Your images are processed securely and never stored on our servers. Complete privacy guaranteed.</p>
+        </div>
+        <div class="feature-card">
+            <i class="material-icons feature-card-icon">speed</i>
+            <h5>Lightning Fast</h5>
+            <p class="text-muted">Advanced algorithms ensure quick processing without compromising image quality.</p>
+        </div>
+        <div class="feature-card">
+            <i class="material-icons feature-card-icon">high_quality</i>
+            <h5>Premium Quality</h5>
+            <p class="text-muted">Maintain image clarity and sharpness with our intelligent compression technology.</p>
+        </div>
+        <div class="feature-card">
+            <i class="material-icons feature-card-icon">devices</i>
+            <h5>All Devices</h5>
+            <p class="text-muted">Works seamlessly on desktop, tablet, and mobile devices with responsive design.</p>
+        </div>
+        <div class="feature-card">
+            <i class="material-icons feature-card-icon">palette</i>
+            <h5>Multiple Formats</h5>
+            <p class="text-muted">Support for JPG, PNG, GIF formats with intelligent format optimization.</p>
+        </div>
+        <div class="feature-card">
+            <i class="material-icons feature-card-icon">tune</i>
+            <h5>Advanced Controls</h5>
+            <p class="text-muted">Fine-tune DPI, dimensions, and file size for perfect results every time.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mainImageInput = document.getElementById('main_image_input');
+    const mainPreviewArea = document.getElementById('main-preview-area');
+    const mainPreviewContent = document.getElementById('main-preview-content');
+    const mainRemoveBtn = document.getElementById('main-remove-btn');
+    const mainImageInfo = document.getElementById('main-image-info');
+    const mainProcessBtn = document.getElementById('main-process-btn');
+    const quickProcessBtn = document.getElementById('quick-process-btn');
+    const processAlert = document.getElementById('process-alert');
+    const mainWidthInput = document.getElementById('main_width');
+    const mainHeightInput = document.getElementById('main_height');
+    
+    // Utility functions
+    const utils = {
+        formatSize: (bytes) => {
+            return bytes < 1024 ? bytes + 'B' : 
+                   bytes < 1048576 ? (bytes >> 10) + 'KB' : 
+                   (bytes / 1048576).toFixed(1) + 'MB';
+        },
+        
+        formatDimensions: (w, h) => {
+            return w > 9999 || h > 9999 ? 
+                   `${(w/1000).toFixed(1)}K×${(h/1000).toFixed(1)}K` : 
+                   `${w}×${h}`;
+        }
+    };
+    
+    // Drag and drop functionality
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        mainPreviewArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        mainPreviewArea.addEventListener(eventName, () => {
+            mainPreviewArea.style.borderColor = '#1976d2';
+            mainPreviewArea.style.backgroundColor = '#e3f2fd';
+        }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        mainPreviewArea.addEventListener(eventName, () => {
+            mainPreviewArea.style.borderColor = '#e0e0e0';
+            mainPreviewArea.style.backgroundColor = '';
+        }, false);
+    });
+    
+    mainPreviewArea.addEventListener('drop', function(e) {
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].type.startsWith('image/')) {
+            const fileList = new DataTransfer();
+            fileList.items.add(files[0]);
+            mainImageInput.files = fileList.files;
+            mainImageInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }, false);
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    // Image upload handling
+    mainImageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        
+        if (!file) {
+            resetPreview();
+            return;
+        }
+        
+        updatePreview(file);
+    });
+    
+    function updatePreview(file) {
+        const imageUrl = URL.createObjectURL(file);
+        
+        mainPreviewContent.innerHTML = `
+            <img src="${imageUrl}" alt="Preview image" style="max-width: 100%; max-height: 150px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" aria-label="Preview image">
+        `;
+        
+        mainPreviewArea.classList.add('has-image');
+        mainRemoveBtn.classList.remove('d-none');
+        mainImageInfo.classList.remove('d-none');
+        mainProcessBtn.disabled = false;
+        
+        // Load image to get dimensions
+        const img = new Image();
+        img.onload = function() {
+            const w = this.naturalWidth;
+            const h = this.naturalHeight;
+            
+            document.getElementById('main-dimensions').textContent = utils.formatDimensions(w, h);
+            document.getElementById('main-filesize').textContent = utils.formatSize(file.size);
+            
+            // Auto-fill dimensions if empty
+            if (!mainWidthInput.value) mainWidthInput.value = w;
+            if (!mainHeightInput.value) mainHeightInput.value = h;
+            
+            // Update hidden fields
+            document.getElementById('hidden_width_0').value = mainWidthInput.value;
+            document.getElementById('hidden_height_0').value = mainHeightInput.value;
+            
+            URL.revokeObjectURL(imageUrl);
+        };
+        img.src = imageUrl;
+    }
+    
+    function resetPreview() {
+        mainPreviewContent.innerHTML = `
+            <div class="upload-placeholder">
+                <i class="material-icons text-primary mb-3" style="font-size: 48px;">cloud_upload</i>
+                <h5 class="text-primary">Drag & Drop Your Image</h5>
+                <p class="text-muted mb-3">or click to browse</p>
+                <span class="badge bg-primary bg-opacity-10 text-primary">JPG, PNG, GIF supported</span>
+            </div>
+        `;
+        
+        mainPreviewArea.classList.remove('has-image');
+        mainRemoveBtn.classList.add('d-none');
+        mainImageInfo.classList.add('d-none');
+        mainProcessBtn.disabled = true;
+        mainWidthInput.value = '';
+        mainHeightInput.value = '';
+    }
+    
+    // Remove button functionality
+    mainRemoveBtn.addEventListener('click', function() {
+        mainImageInput.value = '';
+        resetPreview();
+    });
+    
+    // Quick process button
+    quickProcessBtn.addEventListener('click', function() {
+        if (mainImageInput.files.length > 0 && mainWidthInput.value && mainHeightInput.value) {
+            processAlert.classList.remove('d-none');
+            document.getElementById('main-upload-form').submit();
+        } else {
+            alert('Please upload an image and set dimensions first!');
+        }
+    });
+    
+    // Update hidden fields when dimensions change
+    [mainWidthInput, mainHeightInput].forEach(input => {
+        input.addEventListener('input', function() {
+            document.getElementById('hidden_width_0').value = mainWidthInput.value;
+            document.getElementById('hidden_height_0').value = mainHeightInput.value;
+        });
+    });
+    
+    // Form submission
+    document.getElementById('main-upload-form').addEventListener('submit', function(e) {
+        if (!mainImageInput.files.length || !mainWidthInput.value || !mainHeightInput.value) {
+            e.preventDefault();
+            alert('Please upload an image and provide both width and height.');
+            return;
+        }
+        
+        mainProcessBtn.disabled = true;
+        mainProcessBtn.innerHTML = '<i class="material-icons me-2">transform</i> Processing...';
+    });
+});
+</script>
+{% endblock %} 

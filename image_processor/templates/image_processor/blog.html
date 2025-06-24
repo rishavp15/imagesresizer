@@ -1,0 +1,106 @@
+{% extends 'image_processor/base.html' %}
+{% block title %}Blog - imagesresizer.tech{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">Blog</h1>
+    <article class="mb-5">
+        <h2>Why Privacy Matters in Online Image Tools</h2>
+        <p class="text-muted">Published: {{ today|date:"Y-m-d" }}</p>
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": "Why Privacy Matters in Online Image Tools",
+          "description": "Why privacy is important when using online image tools and how imagesresizer.tech protects your data.",
+          "datePublished": "{{ today|date:"Y-m-d" }}",
+          "author": {"@type": "Organization", "name": "imagesresizer.tech"},
+          "publisher": {"@type": "Organization", "name": "imagesresizer.tech", "logo": {"@type": "ImageObject", "url": "https://imagesresizer.tech/static/favicon.png"}}
+        }
+        </script>
+        <p>When you upload images to an online tool, you trust that your data will be handled securely. At <strong>imagesresizer.tech</strong>, we believe privacy is a fundamental right. That's why we never save or store your images, and all processing is done securely and privately.</p>
+        <h3>Key Points:</h3>
+        <ul>
+            <li><strong>No image storage:</strong> Your files are deleted immediately after processing.</li>
+            <li><strong>No tracking:</strong> We do not track your activity or collect personal data.</li>
+            <li><strong>Transparency:</strong> Our privacy policy is clear and user-friendly.</li>
+        </ul>
+        <p>Choose online tools that respect your privacy. For more information, see our <a href="/privacy-policy/">Privacy Policy</a>.</p>
+    </article>
+    <article class="mb-5">
+        <h2>How to Resize and Bulk Process Images with imagesresizer.tech</h2>
+        <p class="text-muted">Published: {{ today|date:"Y-m-d" }}</p>
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": "How to Resize and Bulk Process Images with imagesresizer.tech",
+          "description": "A step-by-step guide to resizing and bulk processing images using imagesresizer.tech.",
+          "datePublished": "{{ today|date:"Y-m-d" }}",
+          "author": {"@type": "Organization", "name": "imagesresizer.tech"},
+          "publisher": {"@type": "Organization", "name": "imagesresizer.tech", "logo": {"@type": "ImageObject", "url": "https://imagesresizer.tech/static/favicon.png"}}
+        }
+        </script>
+        <p>Resizing images is essential for web, social media, and print. With <strong>imagesresizer.tech</strong>, you can resize one or many images at once, quickly and securely. Here's how the process works and how to use our bulk processing feature:</p>
+        <h3>Step-by-Step: Resizing a Single Image</h3>
+        <ol>
+            <li>Go to the <a href="/">Home page</a>.</li>
+            <li>Click the upload area and select your image (JPG, PNG, GIF, etc.).</li>
+            <li>Set your desired width and height in pixels.</li>
+            <li>Optionally, set a target file size (KB) for compression.</li>
+            <li>Click <strong>Process</strong> and download your resized image instantly.</li>
+        </ol>
+        <h3>How to Bulk Process Images</h3>
+        <ol>
+            <li>On the Home page, click "Add" to create more upload slots (up to 20 images).</li>
+            <li>Upload multiple images at once. Each can have its own settings.</li>
+            <li>Set dimensions and file size for each image as needed.</li>
+            <li>Click <strong>Process</strong> to resize all images in one go.</li>
+            <li>Download each image individually or as a ZIP file for convenience.</li>
+        </ol>
+        <h3>Benefits of Bulk Processing</h3>
+        <ul>
+            <li>Save time by processing many images together.</li>
+            <li>Consistent sizing for all your images.</li>
+            <li>All processing is private—your images are never stored.</li>
+        </ul>
+        <p>Try it now on our <a href="/">Home page</a> and experience fast, secure, and easy image resizing!</p>
+    </article>
+    <article class="mb-5">
+        <h2>Step-by-Step: How to Use imagesresizer.tech</h2>
+        <p class="text-muted">Published: {{ today|date:"Y-m-d" }}</p>
+        <p>Learn how to quickly resize and process your images with our easy-to-use tool. Upload, set your dimensions, and download—done in seconds!</p>
+        <ol>
+            <li>Go to the <a href="/">Home page</a>.</li>
+            <li>Upload your images (JPG, PNG, GIF, etc.).</li>
+            <li>Set your desired width, height, and file size.</li>
+            <li>Click <strong>Process</strong> and download your results instantly.</li>
+        </ol>
+    </article>
+    <article class="mb-5">
+        <h2>Why Choose imagesresizer.tech for Image Resizing?</h2>
+        <p class="text-muted">Published: {{ today|date:"Y-m-d" }}</p>
+        <ul>
+            <li><strong>Privacy:</strong> We never save or store your images.</li>
+            <li><strong>Bulk Processing:</strong> Resize up to 20 images at once.</li>
+            <li><strong>Speed:</strong> Lightning-fast processing and downloads.</li>
+            <li><strong>Quality:</strong> Maintain image clarity and sharpness.</li>
+            <li><strong>Free & Easy:</strong> No registration, no hassle.</li>
+        </ul>
+    </article>
+    <article class="mb-5">
+        <h2>The Power of Bulk Image Processing</h2>
+        <p class="text-muted">Published: {{ today|date:"Y-m-d" }}</p>
+        <p>Bulk processing saves you time and ensures consistency across all your images. Perfect for social media, e-commerce, and more.</p>
+        <ul>
+            <li>Upload multiple images at once.</li>
+            <li>Set different or identical settings for each image.</li>
+            <li>Download all results in a single ZIP file.</li>
+        </ul>
+    </article>
+    <article class="mb-5">
+        <h2>Trending Topic: [Your Next Big Feature or Industry News]</h2>
+        <p class="text-muted">Published: {{ today|date:"Y-m-d" }}</p>
+        <p>Stay tuned for our next post on the latest trends in image processing and online privacy!</p>
+    </article>
+</div>
+{% endblock %} 

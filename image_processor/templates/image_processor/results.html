@@ -1,0 +1,282 @@
+{% extends 'image_processor/base.html' %}
+{% load image_filters %}
+
+{% block title %}Processing Results - Images Resizer{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">Image Processing Results</h1>
+    <div class="text-center mb-4">
+        <a href="{% url 'home' %}" class="btn btn-link">Home</a>
+        <a href="{% url 'about' %}" class="btn btn-link">About</a>
+    </div>
+    <h2 class="mb-4">Your Processed Images</h2>
+    <!-- Results Header -->
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h3 class="mb-2">
+                <i class="material-icons me-2">check_circle</i>
+                Processing Results
+            </h3>
+            <p class="text-muted small">
+                Session ID: <code>{{ session.session_id }}</code><br>
+                Created: {{ session.created_at|date:"M d, Y H:i" }}
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'home' %}" class="btn btn-outline-primary btn-sm me-2">
+                <i class="material-icons me-1">add</i>
+                Process More
+            </a>
+            {% if processed_count > 1 %}
+            <a href="{% url 'download_session_zip' session.session_id %}" class="btn btn-success btn-sm">
+                <i class="material-icons me-1">archive</i>
+                Download ZIP
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Processing Summary -->
+    <div class="row mb-4 g-3" role="region" aria-label="Processing Summary">
+        <div class="col-4 col-md-4">
+            <div class="card text-center">
+                <div class="card-body py-4">
+                    <i class="material-icons text-success" style="font-size: 36px;">done_all</i>
+                    <h5 class="mt-3 mb-2">{{ processed_count }}</h5>
+                    <p class="text-muted mb-0">Images Processed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-4 col-md-4">
+            <div class="card text-center">
+                <div class="card-body py-4">
+                    <i class="material-icons text-primary" style="font-size: 36px;">collections</i>
+                    <h5 class="mt-3 mb-2">{{ total_count }}</h5>
+                    <p class="text-muted mb-0">Total Uploaded</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-4 col-md-4">
+            <div class="card text-center">
+                <div class="card-body py-4">
+                    <i class="material-icons text-info" style="font-size: 36px;">schedule</i>
+                    <h5 class="mt-3 mb-2">
+                        {% if time_taken_seconds is not None %}
+                            {{ time_taken_seconds }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </h5>
+                    <p class="text-muted mb-0">Time Taken (seconds)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Images Grid -->
+    <div class="row g-3" role="region" aria-label="Processed Images Grid">
+        {% for image in images %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                {% if image.is_processed and image.processed_image %}
+                    <img src="{{ image.processed_image.url }}" class="card-img-top" alt="Processed image: {{ image.original_filename }}" style="height: 160px; object-fit: cover;" loading="lazy" aria-label="Processed image: {{ image.original_filename }}">
+                {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 160px;">
+                        <i class="material-icons text-muted" style="font-size: 36px;" aria-hidden="true">image</i>
+                    </div>
+                {% endif %}
+                
+                <div class="card-body py-3">
+                    <h6 class="card-title">{{ image.original_filename }}</h6>
+                    
+                    <!-- Dimensions Comparison -->
+                    <div class="row text-muted small mb-2">
+                        <div class="col-6">
+                            <strong>Dimensions:</strong><br>
+                            <span class="text-success">{{ image.output_width }} × {{ image.output_height }}px</span><br>
+                            <small class="text-muted">(was {{ image.original_width }} × {{ image.original_height }}px)</small>
+                        </div>
+                        <div class="col-6">
+                            <strong>DPI:</strong><br>
+                            {% if image.dpi %}
+                                {{ image.dpi }}
+                            {% else %}
+                                <span class="text-muted">Not set</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- File Size Comparison -->
+                    {% if image.file_size and image.original_file_size %}
+                    <div class="row text-muted small mb-2">
+                        <div class="col-6">
+                            <strong>File Size:</strong><br>
+                            <span class="text-success">
+                                {% if image.file_size < 1048576 %}
+                                    {{ image.file_size|filesizeformat }}
+                                {% else %}
+                                    {{ image.file_size|div:1048576|floatformat:2 }} MB
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="col-6">
+                            <strong>Original Size:</strong><br>
+                            <small class="text-muted">
+                                {% if image.original_file_size < 1048576 %}
+                                    {{ image.original_file_size|filesizeformat }}
+                                {% else %}
+                                    {{ image.original_file_size|div:1048576|floatformat:2 }} MB
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if image.dimension_width and image.dimension_height %}
+                    <div class="text-muted small mb-2">
+                        <strong>Physical:</strong>
+                        {{ image.dimension_width }} × {{ image.dimension_height }} {{ image.dimension_unit }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card-footer bg-light d-flex justify-content-between align-items-center py-2">
+                        <a href="{{ image.processed_image.url }}" download class="btn btn-sm btn-success">
+                            <i class="material-icons me-1" style="font-size: 16px;">download</i>
+                            Download
+                        </a>
+                        <a href="{% url 'reprocess_image' image.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="material-icons me-1" style="font-size: 16px;">replay</i>
+                            Re-process
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-footer text-muted small py-2">
+                    {% if image.processed_at %}
+                        Processed: {{ image.processed_at|date:"M d, H:i" }}
+                    {% else %}
+                        Uploaded: {{ image.created_at|date:"M d, H:i" }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-4">
+                    <i class="material-icons text-muted" style="font-size: 48px;">image_not_supported</i>
+                    <h5 class="mt-2 text-muted">No Images Found</h5>
+                    <p class="text-muted small">This session doesn't contain any images.</p>
+                    <a href="{% url 'home' %}" class="btn btn-primary btn-sm">
+                        <i class="material-icons me-1">add</i>
+                        Upload Images
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Session Actions -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body py-3">
+                    <h6 class="card-title">Session Actions</h6>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p class="text-muted small mb-2">
+                                This session will be automatically deleted when you leave this page or you can delete it manually. 
+                                Your data is deleted with deletion of this session we promise you we will not save or store your images.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <a href="{% url 'delete_session' session.session_id %}" class="btn btn-outline-danger btn-sm"
+                               onclick="return confirm('Are you sure you want to delete this session? All images will be permanently removed.')">
+                                <i class="material-icons me-1">delete</i>
+                                Delete Session
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-delete session when user leaves the results page
+let sessionId = '{{ session.session_id }}';
+
+// Function to delete session via AJAX
+function deleteSessionOnLeave() {
+    if (sessionId) {
+        // Use sendBeacon for reliable delivery when page is unloading
+        if (navigator.sendBeacon) {
+            const formData = new FormData();
+            formData.append('session_id', sessionId);
+            navigator.sendBeacon('/delete-session-ajax/', formData);
+        } else {
+            // Fallback for older browsers
+            fetch('/delete-session-ajax/', {
+                method: 'POST',
+                body: JSON.stringify({session_id: sessionId}),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            }).catch(() => {}); // Ignore errors on page unload
+        }
+    }
+}
+
+// Set up page unload handlers
+window.addEventListener('beforeunload', deleteSessionOnLeave);
+window.addEventListener('pagehide', deleteSessionOnLeave);
+window.addEventListener('unload', deleteSessionOnLeave);
+
+// Auto-delete session after 30 minutes of inactivity
+let sessionTimeout;
+function resetSessionTimeout() {
+    clearTimeout(sessionTimeout);
+    sessionTimeout = setTimeout(function() {
+        // Auto-delete session after 30 minutes
+        fetch('/delete-session-ajax/', {
+            method: 'POST',
+            body: JSON.stringify({session_id: sessionId}),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(() => {
+            // Redirect to home page after deletion
+            window.location.href = '/';
+        }).catch(() => {
+            // If deletion fails, still redirect
+            window.location.href = '/';
+        });
+    }, 30 * 60 * 1000); // 30 minutes
+}
+
+// Reset timeout on user activity
+document.addEventListener('click', resetSessionTimeout);
+document.addEventListener('keypress', resetSessionTimeout);
+document.addEventListener('scroll', resetSessionTimeout);
+
+// Start the timeout
+resetSessionTimeout();
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh if there are unprocessed images
+    const unprocessedImages = document.querySelectorAll('.badge.bg-danger').length;
+    if (unprocessedImages > 0) {
+        setTimeout(function() {
+            location.reload();
+        }, 5000); // Refresh every 5 seconds
+    }
+});
+</script>
+{% endblock %} 

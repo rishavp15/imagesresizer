@@ -1,0 +1,100 @@
+{% extends 'image_processor/base.html' %}
+
+{% block title %}Delete Session - Images Resizer{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">Confirm Delete Session</h1>
+    <div class="text-center mb-4">
+        <a href="{% url 'home' %}" class="btn btn-link">Home</a>
+        <a href="{% url 'about' %}" class="btn btn-link">About</a>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="material-icons me-2">warning</i>
+                        Confirm Session Deletion
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="material-icons me-2">info</i>
+                        <strong>Warning:</strong> This action cannot be undone!
+                    </div>
+                    
+                    <p class="mb-4">
+                        You are about to permanently delete this session and all associated images:
+                    </p>
+                    
+                    <div class="row mb-4">
+                        <div class="col-sm-6">
+                            <strong>Session ID:</strong><br>
+                            <code>{{ session.session_id }}</code>
+                        </div>
+                        <div class="col-sm-6">
+                            <strong>Created:</strong><br>
+                            {{ session.created_at|date:"M d, Y H:i" }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-sm-6">
+                            <strong>Total Images:</strong><br>
+                            {{ session.images.count }}
+                        </div>
+                        <div class="col-sm-6">
+                            <strong>Processed Images:</strong><br>
+                            {{ processed_count }}
+                        </div>
+                    </div>
+                    
+                    <h2 class="mb-4">Images that will be deleted</h2>
+                    {% if session.images.all %}
+                    <div class="mb-4">
+                        <div class="row g-2 mt-2">
+                            {% for image in session.images.all|slice:":6" %}
+                            <div class="col-4">
+                                {% if image.processed_image %}
+                                    <img src="{{ image.processed_image.url }}" class="img-thumbnail" style="height: 80px; width: 100%; object-fit: cover;" alt="Processed image: {{ image.original_filename }}" aria-label="Processed image: {{ image.original_filename }}">
+                                {% else %}
+                                    <div class="bg-light d-flex align-items-center justify-content-center border rounded" style="height: 80px;">
+                                        <i class="material-icons text-muted" aria-hidden="true">image</i>
+                                    </div>
+                                {% endif %}
+                                <small class="d-block text-truncate mt-1">{{ image.original_filename }}</small>
+                            </div>
+                            {% endfor %}
+                            
+                            {% if session.images.count > 6 %}
+                            <div class="col-12 text-center mt-2">
+                                <small class="text-muted">
+                                    ... and {{ session.images.count|add:"-6" }} more image(s)
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'processing_results' session.session_id %}" 
+                               class="btn btn-secondary">
+                                <i class="material-icons me-1">arrow_back</i>
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="material-icons me-1">delete_forever</i>
+                                Yes, Delete Session
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

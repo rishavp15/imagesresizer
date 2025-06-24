@@ -1,0 +1,131 @@
+{% extends 'image_processor/base.html' %}
+{% load crispy_forms_tags %}
+{% load image_filters %}
+
+{% block title %}Re-process Image - Images Resizer{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="main-title mb-4">Re-process Image</h1>
+    <div class="text-center mb-4">
+        <a href="{% url 'home' %}" class="btn btn-link">Home</a>
+        <a href="{% url 'about' %}" class="btn btn-link">About</a>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <div class="text-center mb-4">
+                <h2 class="mb-3">Adjust Image Settings</h2>
+                <p class="text-muted">Adjust the settings below to re-process your image. The original processed image will not be affected.</p>
+            </div>
+            <div class="row">
+                <!-- Original Image Preview -->
+                <div class="col-md-4">
+                    <div class="card sticky-top" style="top: 20px;">
+                        <div class="card-header bg-light">
+                            <h3 class="mb-0">Original Image</h3>
+                        </div>
+                        <div class="card-body text-center">
+                            <img src="{{ original_request.original_image.url }}" class="img-fluid rounded shadow-sm mb-3" alt="Original uploaded image: {{ original_request.original_filename }}" loading="lazy" aria-label="Original uploaded image: {{ original_request.original_filename }}">
+                            <p class="mb-1 small text-truncate"><strong>File:</strong> {{ original_request.original_filename }}</p>
+                            <p class="mb-0 small text-muted">
+                                {{ original_request.original_width }}×{{ original_request.original_height }}px • {{ original_request.original_file_size|filesizeformat }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Form -->
+                <div class="col-md-8">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Processing Settings</h6>
+                            </div>
+                            <div class="card-body">
+                                {% if form.non_field_errors %}
+                                    <div class="alert alert-danger">
+                                        {{ form.non_field_errors }}
+                                    </div>
+                                {% endif %}
+
+                                <div class="card mb-3 border-primary">
+                                    <div class="card-body">
+                                        <h6 class="mb-3 text-primary">Target File Size</h6>
+                                        {{ form.target_file_size_kb_0|as_crispy_field }}
+                                    </div>
+                                </div>
+
+                                <div class="card border-secondary">
+                                    <div class="card-body">
+                                        <h6 class="mb-3 text-secondary">Dimensions & Resolution</h6>
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-md-5">
+                                                {{ form.dimension_unit_0|as_crispy_field }}
+                                            </div>
+                                            <div class="col-md-7">
+                                                {{ form.dpi_0|as_crispy_field }}
+                                            </div>
+                                        </div>
+
+                                        <div id="dimension-fields-container-0">
+                                            <!-- Pixel Dimensions -->
+                                            <div class="dimension-fields dimension-pixels" id="dimension-pixels-0">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">{{ form.output_width_0|as_crispy_field }}</div>
+                                                    <div class="col-md-6">{{ form.output_height_0|as_crispy_field }}</div>
+                                                </div>
+                                            </div>
+                                            <!-- CM Dimensions -->
+                                            <div class="dimension-fields dimension-cm d-none" id="dimension-cm-0">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">{{ form.cm_width_0|as_crispy_field }}</div>
+                                                    <div class="col-md-6">{{ form.cm_height_0|as_crispy_field }}</div>
+                                                </div>
+                                            </div>
+                                            <!-- Inch Dimensions -->
+                                            <div class="dimension-fields dimension-inch d-none" id="dimension-inch-0">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">{{ form.inch_width_0|as_crispy_field }}</div>
+                                                    <div class="col-md-6">{{ form.inch_height_0|as_crispy_field }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="material-icons me-1">replay</i> Re-process Image
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const unitSelector = document.querySelector('[name="dimension_unit_0"]');
+    if (unitSelector) {
+        const updateDimensionFields = () => {
+            const unit = unitSelector.value;
+            document.getElementById('dimension-pixels-0').classList.toggle('d-none', unit !== 'pixels');
+            document.getElementById('dimension-cm-0').classList.toggle('d-none', unit !== 'cm');
+            document.getElementById('dimension-inch-0').classList.toggle('d-none', unit !== 'inch');
+        };
+
+        unitSelector.addEventListener('change', updateDimensionFields);
+        
+        // Initial state
+        updateDimensionFields();
+    }
+});
+</script>
+{% endblock %} 

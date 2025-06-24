@@ -1,0 +1,1398 @@
+{% extends 'image_processor/base.html' %}
+{% load crispy_forms_tags %}
+{% load image_filters %}
+
+{% block title %}Home - imagesresizer.tech{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #1976d2, #1565c0);
+        color: white;
+        padding: 50px 0;
+        margin-bottom: 50px;
+    }
+    
+    .hero-title {
+        font-size: 2.2rem;
+        font-weight: 400;
+        margin-bottom: 20px;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 30px;
+    }
+    
+    .important-features-box {
+        background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+        border: 2px solid #28a745;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 40px;
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.15);
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .feature-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .feature-icon {
+        color: #28a745;
+        font-size: 28px;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+    
+    .main-image-processor {
+        background-color: var(--md-surface-color);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 40px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: 2px solid #e3f2fd;
+        contain: layout style;
+    }
+    
+    .improved-preview {
+        border: 2px dashed #e0e0e0;
+        border-radius: 12px;
+        padding: 25px;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: linear-gradient(45deg, #f8f9fa, #ffffff);
+        min-height: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        isolation: isolate;
+        contain: layout style;
+        pointer-events: auto;
+    }
+    
+    .improved-preview input[type="file"] {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        opacity: 0 !important;
+        z-index: 2 !important;
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        border: none !important;
+        background: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .improved-preview.has-image {
+        border-color: #1976d2;
+        background: #e3f2fd;
+    }
+    
+    .preview-content img {
+        max-width: 100%;
+        max-height: 160px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .quick-process-btn {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+        border-radius: 25px;
+        padding: 12px 24px;
+        font-weight: 500;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+    
+    .quick-process-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+        color: white;
+    }
+    
+    .soft-alert {
+        background: linear-gradient(45deg, #fff3cd, #fef3bd);
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        color: #856404;
+        margin-top: 10px;
+    }
+    
+    .how-to-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 40px;
+        margin-bottom: 40px;
+    }
+    
+    .step-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 25px;
+    }
+    
+    .step-number {
+        background: #1976d2;
+        color: white;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 18px;
+        flex-shrink: 0;
+        font-size: 1rem;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .feature-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-4px);
+    }
+    
+    .feature-card-icon {
+        color: #1976d2;
+        font-size: 48px;
+        margin-bottom: 20px;
+    }
+    
+    .main-title {
+        font-size: 2.5rem;
+        font-weight: 300;
+        text-align: center;
+        margin-bottom: 20px;
+        color: #1976d2;
+    }
+    
+    @media (max-width: 768px) {
+        .main-title {
+            font-size: 1.1rem;
+        }
+        
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .hero-section {
+            padding: 20px 0;
+        }
+        
+        .important-features-box {
+            padding: 15px;
+        }
+        
+        .main-image-processor {
+            padding: 15px;
+        }
+        
+        .how-to-section {
+            padding: 20px;
+        }
+        
+        .feature-card {
+            padding: 16px;
+        }
+        
+        /* Mobile-specific collapsible behavior */
+        .additional-settings-mobile {
+            display: none;
+        }
+        
+        .additional-settings-mobile.show {
+            display: block;
+        }
+        
+        /* Collapsible header styling */
+        .collapsible-header {
+            transition: all 0.3s ease;
+        }
+        
+        .collapsible-header:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+        
+        .collapse-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .collapse-icon.rotated {
+            transform: rotate(180deg);
+        }
+        
+        /* Ensure proper spacing on mobile */
+        .card-body {
+            padding: 12px;
+        }
+        
+        .form-control-sm {
+            font-size: 14px;
+        }
+        
+        .btn-sm {
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+        
+        /* Make collapsible headers more touch-friendly */
+        [data-bs-toggle="collapse"] {
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Improve touch targets */
+        .form-control-sm {
+            min-height: 38px;
+        }
+        
+        .btn-sm {
+            min-height: 38px;
+        }
+        
+        /* Better spacing for mobile cards */
+        .card {
+            margin-bottom: 15px;
+        }
+        
+        .card-body {
+            padding: 15px;
+        }
+        
+        /* Ensure proper text sizing on mobile */
+        .form-label {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+        
+        /* Improve button spacing */
+        .btn-group .btn {
+            margin-bottom: 5px;
+        }
+    }
+    
+    /* Desktop: Show additional settings by default */
+    @media (min-width: 769px) {
+        .additional-settings-desktop {
+            display: block !important;
+        }
+        
+        .collapse-icon {
+            display: none !important;
+        }
+        
+        /* Force show additional settings on desktop */
+        .collapse {
+            display: block !important;
+        }
+        
+        /* Hide collapse functionality on desktop */
+        [data-bs-toggle="collapse"] {
+            cursor: default !important;
+        }
+
+        
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <h1 class="main-title">imagesresizer.tech - Bulk Image Resizer</h1>
+</div>
+
+<!-- Important Features Box -->
+<div class="container mb-5">
+    <div class="important-features-box">
+        <h2 class="text-center mb-4" style="color: #28a745; font-weight: 500;">
+            <i class="material-icons me-2" style="font-size: 28px; vertical-align: middle;">security</i>
+            Key Features
+        </h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <i class="material-icons feature-icon" aria-hidden="true">lock</i>
+                    <div>
+                        <strong>Privacy Guaranteed</strong><br>
+                        <span class="text-muted">We do not save or store your images. All processing is done securely and privately. Your data is deleted immediately after processing.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <i class="material-icons feature-icon" aria-hidden="true">collections</i>
+                    <div>
+                        <strong>Bulk Processing</strong><br>
+                        <span class="text-muted">Process multiple images in one go—up to {{ max_images }} images at once, each with custom settings.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Image Processor -->
+<div class="container">
+    <!-- Upload Controls -->
+    <div class="card mb-4">
+        <div class="card-body py-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="mb-2">
+                        <i class="material-icons me-2">cloud_upload</i>
+                        Upload Images
+                    </h5>
+                    <p class="text-muted mb-0 small">
+                        Currently showing {{ num_images }} upload slot{% if num_images > 1 %}s{% endif %}. Each image can have different settings.
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary" id="remove-slot-btn" {% if num_images == 1 %}disabled{% endif %}>
+                            <i class="material-icons me-1">remove</i> Remove
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" id="add-slot-btn" {% if num_images == max_images %}disabled{% endif %}>
+                            <i class="material-icons me-1">add</i> Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-image-processor">
+        <h5 class="mb-4 text-primary">
+            <i class="material-icons me-2">photo_size_select_large</i>
+            Image Processor
+        </h5>
+        
+        <form method="post" enctype="multipart/form-data" id="main-upload-form" 
+              data-num-images="{{ num_images }}" data-max-images="{{ max_images }}">
+            {% csrf_token %}
+            
+            <div class="image-slots-container">
+                <div class="card mb-4 d-none" id="image-slot-template">
+                    <div class="card-body py-4">
+                        <h6 class="card-title text-primary mb-4">
+                            <i class="material-icons me-1">image</i>
+                            Image <span class="slot-number">1</span>
+                        </h6>
+                        
+                        <div class="row g-4">
+                            <!-- Image Upload and Preview -->
+                            <div class="col-md-4">
+                                <label for="id_image___INDEX__" class="form-label">Select Image</label>
+                                <div class="drag-drop-zone position-relative" data-index="__INDEX__">
+                                    <input type="file" class="form-control image-upload-input" name="image___INDEX__" id="id_image___INDEX__" accept="image/*" data-index="__INDEX__" style="opacity: 0; position: absolute; width: 100%; height: 100%; z-index: 2; cursor: pointer;">
+                                    <div class="drag-drop-overlay border border-2 border-dashed rounded-3 p-3 text-center bg-light position-relative" style="min-height: 120px;">
+                                        <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                                            <i class="material-icons text-primary mb-2" style="font-size: 32px;">cloud_upload</i>
+                                            <div class="fw-medium text-dark mb-1">Drag & Drop</div>
+                                            <div class="text-muted small">or click to browse</div>
+                                            <div class="mt-2">
+                                                <span class="badge bg-primary bg-opacity-10 text-primary">JPG, PNG, GIF</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="image-preview d-none mt-3" id="preview-__INDEX__">
+                                    <div class="position-relative border rounded-top-3 overflow-hidden shadow-sm">
+                                        <button type="button" class="btn btn-danger btn-sm remove-image-btn position-absolute top-0 end-0 m-2 rounded-circle p-1"
+                                                data-index="__INDEX__" style="z-index: 10; width: 28px; height: 28px;">
+                                            <i class="material-icons" style="font-size: 14px; line-height: 1;">close</i>
+                                        </button>
+                                        <div class="position-relative bg-light" style="height: 120px;">
+                                            <img src="" alt="Preview image for slot __INDEX__" class="w-100 h-100 preview-img" style="object-fit: contain;" aria-label="Image preview for slot __INDEX__">
+                                        </div>
+                                    </div>
+
+                                    <!-- Image Description -->
+                                    <div class="border border-top-0 rounded-bottom-3 shadow-sm bg-light">
+                                        <!-- Desktop: Multi-line info -->
+                                        <div class="p-3 d-none d-md-block">
+                                            <div class="mb-1">
+                                                <div class="fw-medium text-truncate" id="filename-__INDEX__">Loading...</div>
+                                            </div>
+                                            <div class="row g-2" style="font-size: 0.75rem;">
+                                                <div class="col-4">
+                                                    <div class="text-muted">Size:</div>
+                                                    <div id="filesize-__INDEX__">-</div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="text-muted">Dimensions:</div>
+                                                    <div id="dimensions-__INDEX__">-</div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="text-muted">Ratio:</div>
+                                                    <div id="ratio-__INDEX__">-</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Mobile: Single-line info -->
+                                        <div class="p-2 d-md-none">
+                                            <div class="d-flex justify-content-between align-items-center" style="font-size: 0.7rem;">
+                                                <div class="text-truncate me-2" id="filename-mobile-__INDEX__">Loading...</div>
+                                                <div class="d-flex gap-2 flex-shrink-0">
+                                                    <span id="dimensions-mobile-__INDEX__">-</span>
+                                                    <span class="opacity-75">•</span>
+                                                    <span id="filesize-mobile-__INDEX__">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Settings -->
+                            <div class="col-md-8">
+                                <!-- Primary Feature: Target File Size -->
+                                <div class="card mb-3 border-primary">
+                                    <div class="card-header bg-primary text-white py-3">
+                                        <h6 class="mb-0">
+                                            <i class="material-icons me-2">storage</i>
+                                            Target File Size
+                                        </h6>
+                                    </div>
+                                    <div class="card-body py-3">
+                                        <div class="row g-3">
+                                            <div class="col-md-8">
+                                                <label for="id_file_size___INDEX__" class="form-label fw-bold">File Size (KB)</label>
+                                                <input type="number" class="form-control file-size-input" id="id_file_size___INDEX__" data-index="__INDEX__" placeholder="e.g. 500" min="5" max="10240">
+                                            </div>
+                                            <div class="col-md-4 d-flex align-items-end">
+                                                <button type="button" class="btn quick-process-btn w-100" data-index="__INDEX__" style="margin-top: 32px;">
+                                                    <i class="material-icons me-1" style="font-size: 18px;">flash_on</i>
+                                                    Quick Process
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                        
+                                <!-- Secondary Features: Dimensions and DPI -->
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-light text-secondary py-3" data-bs-toggle="collapse" data-bs-target="#additional-settings-__INDEX__" aria-expanded="false" aria-controls="additional-settings-__INDEX__" style="cursor: pointer;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">
+                                                <i class="material-icons me-2">tune</i>
+                                                Additional Settings
+                                            </h6>
+                                            <i class="material-icons collapse-icon">expand_more</i>
+                                </div>
+                            </div>
+                                    <div class="collapse" id="additional-settings-__INDEX__">
+                                        <div class="card-body py-3">
+                                            <div class="row g-3 mb-3">
+                                        <div class="col-md-4">
+                                            <label for="id_dimension_unit___INDEX__" class="form-label">Unit</label>
+                                            <select class="form-select dimension-unit-selector" name="dimension_unit___INDEX__" id="id_dimension_unit___INDEX__" data-index="__INDEX__">
+                                                <option value="pixels" selected>Pixels</option>
+                                                <option value="cm">Centimeters</option>
+                                                <option value="inch">Inches</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                            
+                                            <!-- Pixels Dimensions -->
+                                            <div class="row g-3 mb-3 dimension-fields dimension-pixels" id="dimension-pixels-__INDEX__">
+                                        <div class="col-md-6">
+                                            <label for="id_output_width___INDEX__" class="form-label">Width (pixels) *</label>
+                                            <input type="number" class="form-control manual-dimension" name="output_width___INDEX__" id="id_output_width___INDEX__" placeholder="e.g. 1920" min="1" data-index="__INDEX__">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="id_output_height___INDEX__" class="form-label">Height (pixels) *</label>
+                                            <input type="number" class="form-control manual-dimension" name="output_height___INDEX__" id="id_output_height___INDEX__" placeholder="e.g. 1080" min="1" data-index="__INDEX__">
+                                        </div>
+                                    </div>
+                                            
+                                            <!-- Centimeters Dimensions -->
+                                            <div class="row g-3 mb-3 dimension-fields dimension-cm d-none" id="dimension-cm-__INDEX__">
+                                        <div class="col-md-6">
+                                            <label for="id_cm_width___INDEX__" class="form-label">Width (cm) *</label>
+                                            <input type="number" class="form-control" name="cm_width___INDEX__" id="id_cm_width___INDEX__" step="0.01" min="0.1" placeholder="e.g. 10.0" data-index="__INDEX__">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="id_cm_height___INDEX__" class="form-label">Height (cm) *</label>
+                                            <input type="number" class="form-control" name="cm_height___INDEX__" id="id_cm_height___INDEX__" step="0.01" min="0.1" placeholder="e.g. 15.0" data-index="__INDEX__">
+                                        </div>
+                                    </div>
+                                            
+                                            <!-- Inches Dimensions -->
+                                            <div class="row g-3 mb-3 dimension-fields dimension-inch d-none" id="dimension-inch-__INDEX__">
+                                        <div class="col-md-6">
+                                            <label for="id_inch_width___INDEX__" class="form-label">Width (inches) *</label>
+                                            <input type="number" class="form-control" name="inch_width___INDEX__" id="id_inch_width___INDEX__" step="0.01" min="0.1" placeholder="e.g. 4.0" data-index="__INDEX__">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="id_inch_height___INDEX__" class="form-label">Height (inches) *</label>
+                                            <input type="number" class="form-control" name="inch_height___INDEX__" id="id_inch_height___INDEX__" step="0.01" min="0.1" placeholder="e.g. 6.0" data-index="__INDEX__">
+                                        </div>
+                                    </div>
+                                            
+                                            <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="id_dpi___INDEX__" class="form-label">DPI (Dots Per Inch)</label>
+                                                    <input type="number" class="form-control" name="dpi___INDEX__" id="id_dpi___INDEX__" min="72" max="600" placeholder="300">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            <!-- Hidden fields for form submission -->
+                            <input type="hidden" name="target_file_size_kb___INDEX__" id="hidden_file_size___INDEX__">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% for i in num_images|default:1|make_range %}
+            <div class="card mb-4" id="image-slot-{{ i }}">
+                <div class="card-body py-4">
+                    <h6 class="card-title text-primary mb-4">
+                        <i class="material-icons me-1">image</i>
+                        Image <span class="slot-number">{{ i|add:1 }}</span>
+                    </h6>
+                    
+                    <div class="row g-4">
+                        <!-- Image Upload and Preview -->
+                        <div class="col-md-4">
+                            <label for="id_image_{{ i }}" class="form-label">Select Image</label>
+                            <div class="drag-drop-zone position-relative" data-index="{{ i }}">
+                                <input type="file" 
+                                       class="form-control image-upload-input" 
+                                       name="image_{{ i }}" 
+                                       id="id_image_{{ i }}"
+                                       accept="image/*"
+                                       data-index="{{ i }}"
+                                       style="opacity: 0; position: absolute; width: 100%; height: 100%; z-index: 2; cursor: pointer;">
+                                <div class="drag-drop-overlay border border-2 border-dashed rounded-3 p-3 text-center bg-light position-relative" style="min-height: 120px;">
+                                    <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                                        <i class="material-icons text-primary mb-2" style="font-size: 32px;">cloud_upload</i>
+                                        <div class="fw-medium text-dark mb-1">Drag & Drop</div>
+                                        <div class="text-muted small">or click to browse</div>
+                                        <div class="mt-2">
+                                            <span class="badge bg-primary bg-opacity-10 text-primary">JPG, PNG, GIF</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Image Preview -->
+                            <div class="image-preview d-none mt-3" id="preview-{{ i }}">
+                                <div class="position-relative border rounded-top-3 overflow-hidden shadow-sm">
+                                    <button type="button" class="btn btn-danger btn-sm remove-image-btn position-absolute top-0 end-0 m-2 rounded-circle p-1"
+                                            data-index="{{ i }}" style="z-index: 10; width: 28px; height: 28px;">
+                                        <i class="material-icons" style="font-size: 14px; line-height: 1;">close</i>
+                                    </button>
+                                    <div class="position-relative bg-light" style="height: 120px;">
+                                        <img src="" alt="Preview image for slot {{ i|default:'N/A' }}" class="w-100 h-100 preview-img" style="object-fit: contain;" aria-label="Image preview for slot {{ i|default:'N/A' }}">
+                                    </div>
+                                </div>
+
+                                <!-- Image Description -->
+                                <div class="border border-top-0 rounded-bottom-3 shadow-sm bg-light">
+                                    <!-- Desktop: Multi-line info -->
+                                    <div class="p-3 d-none d-md-block">
+                                        <div class="mb-1">
+                                            <div class="fw-medium text-truncate" id="filename-{{ i }}">Loading...</div>
+                                        </div>
+                                        <div class="row g-2" style="font-size: 0.75rem;">
+                                            <div class="col-4">
+                                                <div class="text-muted">Size:</div>
+                                                <div id="filesize-{{ i }}">-</div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="text-muted">Dimensions:</div>
+                                                <div id="dimensions-{{ i }}">-</div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="text-muted">Ratio:</div>
+                                                <div id="ratio-{{ i }}">-</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mobile: Single-line info -->
+                                    <div class="p-2 d-md-none">
+                                        <div class="d-flex justify-content-between align-items-center" style="font-size: 0.7rem;">
+                                            <div class="text-truncate me-2" id="filename-mobile-{{ i }}">Loading...</div>
+                                            <div class="d-flex gap-2 flex-shrink-0">
+                                                <span id="dimensions-mobile-{{ i }}">-</span>
+                                                <span class="opacity-75">•</span>
+                                                <span id="filesize-mobile-{{ i }}">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Settings -->
+                        <div class="col-md-8">
+                            <!-- Primary Feature: Target File Size -->
+                            <div class="card mb-3 border-primary">
+                                <div class="card-header bg-primary text-white py-3">
+                                    <h6 class="mb-0">
+                                        <i class="material-icons me-2">storage</i>
+                                        Target File Size
+                                    </h6>
+                                </div>
+                                <div class="card-body py-3">
+                                    <div class="row g-3">
+                                        <div class="col-md-8">
+                                            <label for="id_file_size_{{ i }}" class="form-label fw-bold">File Size (KB)</label>
+                                            <input type="number" class="form-control file-size-input" id="id_file_size_{{ i }}" data-index="{{ i }}" placeholder="e.g. 500" min="5" max="10240">
+                                        </div>
+                                        <div class="col-md-4 d-flex align-items-end">
+                                            <button type="button" class="btn quick-process-btn w-100" data-index="{{ i }}" style="margin-top: 32px;">
+                                                <i class="material-icons me-1" style="font-size: 18px;">flash_on</i>
+                                                Quick Process
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    
+                            <!-- Secondary Features: Dimensions and DPI -->
+                            <div class="card border-secondary">
+                                <div class="card-header bg-light text-secondary py-3" data-bs-toggle="collapse" data-bs-target="#additional-settings-{{ i }}" aria-expanded="false" aria-controls="additional-settings-{{ i }}" style="cursor: pointer;">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">
+                                            <i class="material-icons me-2">tune</i>
+                                            Additional Settings
+                                        </h6>
+                                        <i class="material-icons collapse-icon">expand_more</i>
+                            </div>
+                        </div>
+                                <div class="collapse" id="additional-settings-{{ i }}">
+                                    <div class="card-body py-3">
+                                        <div class="row g-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label for="id_dimension_unit_{{ i }}" class="form-label">Unit</label>
+                                        <select class="form-select dimension-unit-selector" name="dimension_unit_{{ i }}" id="id_dimension_unit_{{ i }}" data-index="{{ i }}">
+                                            <option value="pixels" selected>Pixels</option>
+                                            <option value="cm">Centimeters</option>
+                                            <option value="inch">Inches</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                        
+                                        <!-- Pixels Dimensions -->
+                                        <div class="row g-3 mb-3 dimension-fields dimension-pixels" id="dimension-pixels-{{ i }}">
+                                    <div class="col-md-6">
+                                        <label for="id_output_width_{{ i }}" class="form-label">Width (pixels) *</label>
+                                        <input type="number" class="form-control manual-dimension" name="output_width_{{ i }}" id="id_output_width_{{ i }}" placeholder="e.g. 1920" min="1" data-index="{{ i }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="id_output_height_{{ i }}" class="form-label">Height (pixels) *</label>
+                                        <input type="number" class="form-control manual-dimension" name="output_height_{{ i }}" id="id_output_height_{{ i }}" placeholder="e.g. 1080" min="1" data-index="{{ i }}">
+                                    </div>
+                                </div>
+                                        
+                                        <!-- Centimeters Dimensions -->
+                                        <div class="row g-3 mb-3 dimension-fields dimension-cm d-none" id="dimension-cm-{{ i }}">
+                                    <div class="col-md-6">
+                                        <label for="id_cm_width_{{ i }}" class="form-label">Width (cm) *</label>
+                                        <input type="number" class="form-control" name="cm_width_{{ i }}" id="id_cm_width_{{ i }}" step="0.01" min="0.1" placeholder="e.g. 10.0" data-index="{{ i }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="id_cm_height_{{ i }}" class="form-label">Height (cm) *</label>
+                                        <input type="number" class="form-control" name="cm_height_{{ i }}" id="id_cm_height_{{ i }}" step="0.01" min="0.1" placeholder="e.g. 15.0" data-index="{{ i }}">
+                                    </div>
+                                </div>
+                                        
+                                        <!-- Inches Dimensions -->
+                                        <div class="row g-3 mb-3 dimension-fields dimension-inch d-none" id="dimension-inch-{{ i }}">
+                                    <div class="col-md-6">
+                                        <label for="id_inch_width_{{ i }}" class="form-label">Width (inches) *</label>
+                                        <input type="number" class="form-control" name="inch_width_{{ i }}" id="id_inch_width_{{ i }}" step="0.01" min="0.1" placeholder="e.g. 4.0" data-index="{{ i }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="id_inch_height_{{ i }}" class="form-label">Height (inches) *</label>
+                                        <input type="number" class="form-control" name="inch_height_{{ i }}" id="id_inch_height_{{ i }}" step="0.01" min="0.1" placeholder="e.g. 6.0" data-index="{{ i }}">
+                                    </div>
+                                </div>
+                                        
+                                        <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="id_dpi_{{ i }}" class="form-label">DPI (Dots Per Inch)</label>
+                                                <input type="number" class="form-control" name="dpi_{{ i }}" id="id_dpi_{{ i }}" min="72" max="600" placeholder="300">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        <!-- Hidden fields for form submission -->
+                        <input type="hidden" name="target_file_size_kb_{{ i }}" id="hidden_file_size_{{ i }}">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="text-center mb-5">
+            <button type="submit" class="btn btn-primary btn-lg" id="process-images-btn">
+                <i class="material-icons me-2">transform</i>
+                Process Images
+            </button>
+        </div>
+    </form>
+    </div>
+</div>
+
+<!-- How To Section -->
+<div class="container mb-5" id="faq-section">
+    <div class="how-to-section">
+        <h2 class="text-center mb-4">How to Resize Your Images</h2>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div>
+                        <strong>Upload Your Image</strong><br>
+                        <span class="text-muted">Drag and drop or click to select your image file (JPG, PNG, GIF)</span>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <div>
+                        <strong>Set Dimensions</strong><br>
+                        <span class="text-muted">Enter your desired width and height in pixels</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div>
+                        <strong>Choose File Size (Optional)</strong><br>
+                        <span class="text-muted">Set target file size in KB for compression optimization</span>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">4</div>
+                    <div>
+                        <strong>Process & Download</strong><br>
+                        <span class="text-muted">Click process and download your resized image instantly</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hero Section with Professional Description -->
+<section class="hero-section mb-5">
+    <div class="container text-center">
+        <h2 class="hero-title">imagesresizer.tech - Bulk Image Resizer</h2>
+        <p class="hero-subtitle">
+            Resize multiple images at once, instantly and securely. We do not save or store your images. Bulk image processing with privacy guaranteed.
+        </p>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <i class="material-icons" style="font-size: 48px;" aria-hidden="true">collections</i>
+                <h3 class="mt-3">Bulk Processing</h3>
+                <p>Upload and process up to {{ max_images }} images at once</p>
+            </div>
+            <div class="col-md-4">
+                <i class="material-icons" style="font-size: 48px;" aria-hidden="true">photo_size_select_large</i>
+                <h3 class="mt-3">Pixel Dimensions</h3>
+                <p>Set width and height in pixels for each image</p>
+            </div>
+            <div class="col-md-4">
+                <i class="material-icons" style="font-size: 48px;" aria-hidden="true">download</i>
+                <h3 class="mt-3">Easy Download</h3>
+                <p>Download individually or as a ZIP file</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<div class="container mb-5">
+    <h2 class="text-center mb-4">Why Choose imagesresizer.tech?</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <i class="material-icons feature-card-icon" aria-hidden="true">security</i>
+            <h3>100% Secure</h3>
+            <p class="text-muted">Your images are processed securely and never stored. Complete privacy guaranteed.</p>
+        </div>
+        <div class="feature-card">
+            <i class="material-icons feature-card-icon" aria-hidden="true">speed</i>
+            <h3>Lightning Fast</h3>
+            <p class="text-muted">Advanced algorithms ensure quick processing without compromising image quality.</p>
+        </div>
+        <div class="feature-card">
+            <i class="material-icons feature-card-icon" aria-hidden="true">high_quality</i>
+            <h3>Premium Quality</h3>
+            <p class="text-muted">Maintain image clarity and sharpness with our intelligent compression technology.</p>
+        </div>
+        <div class="feature-card">
+            <i class="material-icons feature-card-icon" aria-hidden="true">devices</i>
+            <h3>All Devices</h3>
+            <p class="text-muted">Works seamlessly on desktop, tablet, and mobile devices with responsive design.</p>
+        </div>
+        <div class="feature-card">
+            <i class="material-icons feature-card-icon" aria-hidden="true">palette</i>
+            <h3>Multiple Formats</h3>
+            <p class="text-muted">Support for JPG, PNG, GIF formats with intelligent format optimization.</p>
+        </div>
+        <div class="feature-card">
+            <i class="material-icons feature-card-icon" aria-hidden="true">tune</i>
+            <h3>Advanced Controls</h3>
+            <p class="text-muted">Fine-tune DPI, dimensions, and file size for perfect results every time.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Add internal links -->
+<div class="container text-center my-4">
+    <a href="{% url 'about' %}" class="btn btn-link">Learn more about imagesresizer.tech</a>
+    <a href="#faq-section" class="btn btn-link">FAQ</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-delete session when user leaves the page
+let currentSessionId = null;
+let sessionCreated = false;
+
+// Function to delete session via AJAX
+function deleteSessionOnLeave() {
+    if (currentSessionId && sessionCreated) {
+        // Use sendBeacon for reliable delivery when page is unloading
+        if (navigator.sendBeacon) {
+            const formData = new FormData();
+            formData.append('session_id', currentSessionId);
+            navigator.sendBeacon('/delete-session-ajax/', formData);
+        } else {
+            // Fallback for older browsers
+            fetch('/delete-session-ajax/', {
+                method: 'POST',
+                body: JSON.stringify({session_id: currentSessionId}),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            }).catch(() => {}); // Ignore errors on page unload
+        }
+    }
+}
+
+// Set up page unload handlers
+window.addEventListener('beforeunload', deleteSessionOnLeave);
+window.addEventListener('pagehide', deleteSessionOnLeave);
+window.addEventListener('unload', deleteSessionOnLeave);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInputs = document.querySelectorAll('.image-upload-input');
+    
+    // Global drag and drop prevention
+    window.addEventListener('dragover', function(e) {
+        e.preventDefault();
+    }, false);
+    
+    window.addEventListener('drop', function(e) {
+        e.preventDefault();
+    }, false);
+    
+    // Utility functions
+    const utils = {
+        formatSize: (bytes) => {
+            return bytes < 1024 ? bytes + 'B' : 
+                   bytes < 1048576 ? (bytes >> 10) + 'KB' : 
+                   (bytes / 1048576).toFixed(1) + 'MB';
+        },
+        
+        formatDimensions: (w, h) => {
+            return w > 9999 || h > 9999 ? 
+                   `${(w/1000).toFixed(1)}K×${(h/1000).toFixed(1)}K` : 
+                   `${w}×${h}`;
+        },
+        
+        calculateRatio: (w, h) => {
+            const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+            const divisor = gcd(w, h);
+            return `${w/divisor}:${h/divisor}`;
+        }
+    };
+    
+    // Drag and Drop Setup for all image slots
+    const dragDropZones = document.querySelectorAll('.drag-drop-zone');
+    
+    dragDropZones.forEach(zone => {
+        const index = zone.dataset.index;
+        const input = document.getElementById(`id_image_${index}`);
+        
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            zone.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        // Highlight drop zone when dragging over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            zone.addEventListener(eventName, () => zone.classList.add('drag-over'), false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            zone.addEventListener(eventName, () => zone.classList.remove('drag-over'), false);
+        });
+        
+        // Handle dropped files
+        zone.addEventListener('drop', handleDrop, false);
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    // Create a new FileList-like object
+                    const fileList = new DataTransfer();
+                    fileList.items.add(file);
+                    input.files = fileList.files;
+                    
+                    // Trigger change event
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                } else {
+                    alert('Please drop an image file');
+                }
+            }
+        }
+    });
+
+    // Image upload handling for all slots
+    imageInputs.forEach(input => {
+        const index = input.dataset.index;
+        const preview = document.getElementById(`preview-${index}`);
+        const dragZone = document.querySelector(`.drag-drop-zone[data-index="${index}"]`);
+        
+        input.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            if (!file) {
+                preview.classList.add('d-none');
+                dragZone.classList.remove('d-none');
+                return;
+            }
+            
+            // Show preview and hide drag zone
+            preview.classList.remove('d-none');
+            dragZone.classList.add('d-none');
+            
+            // Update file info
+            const displayName = file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name;
+            const filenameEl = document.getElementById(`filename-${index}`);
+            const filenameMobileEl = document.getElementById(`filename-mobile-${index}`);
+            filenameEl.textContent = displayName;
+            filenameEl.title = file.name;
+            filenameMobileEl.textContent = displayName;
+            filenameMobileEl.title = file.name;
+            
+            const filesizeEl = document.getElementById(`filesize-${index}`);
+            const filesizeMobileEl = document.getElementById(`filesize-mobile-${index}`);
+            const formattedSize = utils.formatSize(file.size);
+            filesizeEl.textContent = formattedSize;
+            filesizeMobileEl.textContent = formattedSize;
+            
+            // Load image for dimensions
+            const imageUrl = URL.createObjectURL(file);
+            const img = preview.querySelector('.preview-img');
+            img.src = imageUrl;
+            
+            img.onload = function() {
+                const w = this.naturalWidth, h = this.naturalHeight;
+                const dimensions = utils.formatDimensions(w, h);
+                const ratio = utils.calculateRatio(w, h);
+                
+                // Update desktop fields
+                document.getElementById(`dimensions-${index}`).textContent = dimensions;
+                document.getElementById(`ratio-${index}`).textContent = ratio;
+                
+                // Update mobile fields
+                document.getElementById(`dimensions-mobile-${index}`).textContent = dimensions;
+                
+                // Auto-fill dimensions if empty
+                const widthInput = document.getElementById(`id_output_width_${index}`);
+                const heightInput = document.getElementById(`id_output_height_${index}`);
+                if (!widthInput.value) widthInput.value = w;
+                if (!heightInput.value) heightInput.value = h;
+                
+                URL.revokeObjectURL(imageUrl);
+            };
+        });
+    });
+    
+    // Remove image functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-image-btn')) {
+            const btn = e.target.closest('.remove-image-btn');
+            const index = btn.dataset.index;
+            const input = document.getElementById(`id_image_${index}`);
+            const preview = document.getElementById(`preview-${index}`);
+            const dragZone = document.querySelector(`.drag-drop-zone[data-index="${index}"]`);
+            
+            input.value = '';
+            preview.classList.add('d-none');
+            dragZone.classList.remove('d-none');
+            
+            // Clear dimension inputs
+            document.getElementById(`id_output_width_${index}`).value = '';
+            document.getElementById(`id_output_height_${index}`).value = '';
+        }
+    });
+    
+    // Unit selector logic for all slots
+    document.querySelectorAll('.dimension-unit-selector').forEach(function(selector) {
+        selector.addEventListener('change', function() {
+            const index = this.dataset.index;
+            const unit = this.value;
+            
+            // Hide all dimension sections
+            document.getElementById(`dimension-pixels-${index}`).classList.add('d-none');
+            document.getElementById(`dimension-cm-${index}`).classList.add('d-none');
+            document.getElementById(`dimension-inch-${index}`).classList.add('d-none');
+            
+            // Show selected section
+            if (unit === 'pixels') {
+                document.getElementById(`dimension-pixels-${index}`).classList.remove('d-none');
+            } else if (unit === 'cm') {
+                document.getElementById(`dimension-cm-${index}`).classList.remove('d-none');
+            } else if (unit === 'inch') {
+                document.getElementById(`dimension-inch-${index}`).classList.remove('d-none');
+            }
+        });
+    });
+    
+    // File size input functionality
+    const fileSizeInputs = document.querySelectorAll('.file-size-input');
+    fileSizeInputs.forEach(function(input) {
+        input.addEventListener('input', function() {
+            const index = this.dataset.index;
+            const sizeKB = this.value;
+            document.getElementById(`hidden_file_size_${index}`).value = sizeKB;
+        });
+    });
+    
+    // Mobile-specific behavior: Auto-collapse additional settings on mobile
+    function handleMobileCollapsible() {
+        const isMobile = window.innerWidth <= 768;
+        const additionalSettings = document.querySelectorAll('.collapse[id^="additional-settings-"]');
+        const headers = document.querySelectorAll('[data-bs-target^="#additional-settings-"]');
+        
+        additionalSettings.forEach(function(setting, index) {
+            const header = headers[index];
+            if (!header) return;
+            
+            const icon = header.querySelector('.collapse-icon');
+            
+            if (isMobile) {
+                // On mobile: collapse by default, show icon, enable collapse
+                setting.classList.remove('show');
+                if (icon) {
+                    icon.classList.remove('rotated');
+                    icon.style.display = 'block';
+                }
+                header.setAttribute('aria-expanded', 'false');
+                header.style.cursor = 'pointer';
+                header.removeAttribute('data-bs-toggle');
+                header.setAttribute('data-bs-toggle', 'collapse');
+            } else {
+                // On desktop: expand by default, hide icon, disable collapse
+                setting.classList.add('show');
+                if (icon) {
+                    icon.classList.remove('rotated');
+                    icon.style.display = 'none';
+                }
+                header.setAttribute('aria-expanded', 'true');
+                header.style.cursor = 'default';
+                header.removeAttribute('data-bs-toggle');
+            }
+        });
+    }
+    
+    // Initialize mobile behavior
+    handleMobileCollapsible();
+    
+    // Handle window resize
+    window.addEventListener('resize', handleMobileCollapsible);
+    
+    // Bootstrap collapse event listeners for icon rotation
+    document.querySelectorAll('.collapse').forEach(function(collapseElement) {
+        // Only target additional settings collapses, not navbar
+        if (collapseElement.id && collapseElement.id.startsWith('additional-settings-')) {
+            collapseElement.addEventListener('show.bs.collapse', function() {
+                const targetId = this.id;
+                const header = document.querySelector(`[data-bs-target="#${targetId}"]`);
+                const icon = header.querySelector('.collapse-icon');
+                if (icon) {
+                    icon.classList.add('rotated');
+                }
+            });
+            
+            collapseElement.addEventListener('hide.bs.collapse', function() {
+                const targetId = this.id;
+                const header = document.querySelector(`[data-bs-target="#${targetId}"]`);
+                const icon = header.querySelector('.collapse-icon');
+                if (icon) {
+                    icon.classList.remove('rotated');
+                }
+            });
+        }
+    });
+    
+    // Quick process button functionality
+    document.querySelectorAll('.quick-process-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const index = this.dataset.index;
+            const fileSizeInput = document.getElementById(`id_file_size_${index}`);
+            const widthInput = document.getElementById(`id_output_width_${index}`);
+            const heightInput = document.getElementById(`id_output_height_${index}`);
+            
+            // Validate inputs
+            if (!fileSizeInput.value || fileSizeInput.value < 5) {
+                alert('Please enter a valid file size (minimum 5 KB)');
+                fileSizeInput.focus();
+                return;
+            }
+            
+            if (!widthInput.value || !heightInput.value) {
+                alert('Please enter both width and height dimensions');
+                return;
+            }
+            
+            // Submit the form for this specific image
+            const form = document.getElementById('main-upload-form');
+            const submitBtn = document.getElementById('process-images-btn');
+            
+            // Temporarily change submit button text
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="material-icons me-2">hourglass_empty</i>Processing...';
+            submitBtn.disabled = true;
+            
+            // Submit form
+            form.submit();
+        });
+    });
+    
+    // Dynamic slot management
+    let currentSlotCount = parseInt(document.getElementById('main-upload-form').dataset.numImages || '1');
+    const maxSlots = parseInt(document.getElementById('main-upload-form').dataset.maxImages || '10');
+    const minSlots = 1;
+    
+    // Add slot functionality
+    document.getElementById('add-slot-btn')?.addEventListener('click', function() {
+        if (currentSlotCount < maxSlots) {
+            addNewSlot();
+            updateSlotCount();
+            updateButtonStates();
+        }
+    });
+    
+    // Remove slot functionality
+    document.getElementById('remove-slot-btn')?.addEventListener('click', function() {
+        if (currentSlotCount > minSlots) {
+            removeLastSlot();
+            updateSlotCount();
+            updateButtonStates();
+        }
+    });
+    
+    function addNewSlot() {
+        const container = document.querySelector('.image-slots-container');
+        const template = document.getElementById('image-slot-template');
+        const newIndex = currentSlotCount;
+
+        // Create new slot from template
+        let newSlotHTML = template.innerHTML;
+        newSlotHTML = newSlotHTML.replace(/__INDEX__/g, newIndex);
+        
+        const newSlot = document.createElement('div');
+        newSlot.className = 'card mb-4';
+        newSlot.id = `image-slot-${newIndex}`;
+        newSlot.innerHTML = newSlotHTML;
+
+        // Update the slot number
+        newSlot.querySelector('.slot-number').textContent = newIndex + 1;
+        
+        container.appendChild(newSlot);
+        
+        // Initialize event listeners for the new slot
+        initializeNewSlot(newIndex);
+        
+        currentSlotCount++;
+    }
+    
+    function removeLastSlot() {
+        // The index is currentSlotCount - 1 because we are 0-indexed in JS
+        const lastSlot = document.getElementById(`image-slot-${currentSlotCount - 1}`);
+        if (lastSlot) {
+            lastSlot.remove();
+            currentSlotCount--;
+        }
+    }
+    
+    function updateSlotCount() {
+        const countDisplay = document.querySelector('.text-muted.small');
+        if (countDisplay) {
+            const slotText = currentSlotCount === 1 ? 'slot' : 'slots';
+            countDisplay.textContent = `Currently showing ${currentSlotCount} upload ${slotText}. Each image can have different settings.`;
+        }
+    }
+    
+    function updateButtonStates() {
+        const addBtn = document.getElementById('add-slot-btn');
+        const removeBtn = document.getElementById('remove-slot-btn');
+        
+        if (addBtn) {
+            addBtn.disabled = currentSlotCount >= maxSlots;
+        }
+        
+        if (removeBtn) {
+            removeBtn.disabled = currentSlotCount <= minSlots;
+        }
+    }
+    
+    function initializeNewSlot(index) {
+        // This function will now re-initialize the event listeners for the new slot
+        const newSlot = document.getElementById(`image-slot-${index}`);
+        if (!newSlot) return;
+
+        // Drag and Drop
+        const dragZone = newSlot.querySelector('.drag-drop-zone');
+        const input = newSlot.querySelector('.image-upload-input');
+        if (dragZone && input) {
+             // Re-bind drag/drop events if they were lost during clone
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dragZone.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dragZone.addEventListener(eventName, () => dragZone.classList.add('drag-over'), false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dragZone.addEventListener(eventName, () => dragZone.classList.remove('drag-over'), false);
+            });
+            dragZone.addEventListener('drop', e => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length > 0) {
+                    const fileList = new DataTransfer();
+                    fileList.items.add(files[0]);
+                    input.files = fileList.files;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }, false);
+        }
+
+        // Image Input Change Event
+        if(input) {
+            input.addEventListener('change', (e) => handleImageUpload(e, index));
+        }
+
+        // Remove Image Button
+        const removeBtn = newSlot.querySelector('.remove-image-btn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => handleRemoveImage(index));
+        }
+
+        // Unit Selector
+        const unitSelector = newSlot.querySelector('.dimension-unit-selector');
+        if(unitSelector) {
+            unitSelector.addEventListener('change', () => handleUnitChange(index));
+        }
+
+        // Quick Process
+        const quickProcessBtn = newSlot.querySelector('.quick-process-btn');
+        if(quickProcessBtn){
+            quickProcessBtn.addEventListener('click', () => handleQuickProcess(index));
+        }
+
+        // Mobile Collapse
+        const collapseElement = newSlot.querySelector('.collapse');
+        if(collapseElement){
+            // Re-initialize bootstrap collapse
+            new bootstrap.Collapse(collapseElement, {
+              toggle: false
+            });
+            handleMobileCollapsible();
+        }
+    }
+
+    // After cloning, many event listeners are lost. We need to abstract the original setup logic
+    // into functions that can be called for each new slot.
+    function handleImageUpload(e, index) {
+        const file = e.target.files[0];
+        const preview = document.getElementById(`preview-${index}`);
+        const dragZone = document.querySelector(`.drag-drop-zone[data-index="${index}"]`);
+
+        if (!file) {
+            preview.classList.add('d-none');
+            dragZone.classList.remove('d-none');
+            return;
+        }
+
+        preview.classList.remove('d-none');
+        dragZone.classList.add('d-none');
+        // ... (rest of the logic from original 'change' event listener)
+    }
+
+    function handleRemoveImage(index) {
+        // ... (logic from original 'remove-image-btn' click listener)
+    }
+
+    function handleUnitChange(index) {
+        // ... (logic from original 'dimension-unit-selector' change listener)
+    }
+    
+    function handleQuickProcess(index) {
+        // ... (logic from quick process button listener)
+    }
+    
+});
+</script>
+{% endblock %} 

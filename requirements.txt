@@ -1,0 +1,10 @@
+Django>=3.2
+Pillow==10.1.0
+python-magic==0.4.27
+django-crispy-forms==2.0
+crispy-bootstrap5==0.7
+whitenoise
+psycopg2-binary
+gunicorn
+dj-database-url
+boto3 

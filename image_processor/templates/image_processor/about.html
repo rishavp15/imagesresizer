@@ -1,0 +1,255 @@
+{% extends 'image_processor/base.html' %}
+
+{% block title %}About - imagesresizer.tech{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="display-4 mb-3">About imagesresizer.tech</h1>
+    <p class="lead text-muted">
+        Bulk image resizing with privacy guaranteed. We do not save or store your images. Process multiple images in one go, securely and privately.
+    </p>
+    <div class="text-center mb-4">
+        <a href="{% url 'home' %}" class="btn btn-link">Home</a>
+        <a href="/privacy-policy/" class="btn btn-link">Privacy Policy</a>
+    </div>
+    <h2 class="mb-4">Key Features</h2>
+    <div class="row mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="material-icons text-primary mb-3" style="font-size: 48px;" aria-hidden="true">collections</i>
+                    <h3 class="card-title">Bulk Processing</h3>
+                    <p class="card-text">Upload and process multiple images simultaneously. Support for up to 20 images at once with individual settings for each image.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="material-icons text-primary mb-3" style="font-size: 48px;" aria-hidden="true">settings</i>
+                    <h3 class="card-title">Advanced Settings</h3>
+                    <p class="card-text">Precise control over output dimensions in pixels, physical dimensions in cm/inches, and DPI settings from 72 to 600.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="material-icons text-primary mb-3" style="font-size: 48px;" aria-hidden="true">download</i>
+                    <h3 class="card-title">Flexible Download</h3>
+                    <p class="card-text">Download processed images individually or as a ZIP file. All downloads are optimized for quality and file size.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 class="mb-4">Technical Features</h2>
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">
+                        <i class="material-icons me-2">engineering</i>
+                        Technical Features
+                    </h4>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Supported Formats</h6>
+                            <ul class="list-unstyled mb-4">
+                                <li><i class="material-icons me-2 text-success">check</i> JPEG/JPG</li>
+                                <li><i class="material-icons me-2 text-success">check</i> PNG</li>
+                                <li><i class="material-icons me-2 text-success">check</i> GIF</li>
+                                <li><i class="material-icons me-2 text-success">check</i> BMP</li>
+                                <li><i class="material-icons me-2 text-success">check</i> TIFF</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Processing Features</h6>
+                            <ul class="list-unstyled mb-4">
+                                <li><i class="material-icons me-2 text-success">check</i> High-quality resampling</li>
+                                <li><i class="material-icons me-2 text-success">check</i> DPI preservation</li>
+                                <li><i class="material-icons me-2 text-success">check</i> Color space optimization</li>
+                                <li><i class="material-icons me-2 text-success">check</i> Aspect ratio control</li>
+                                <li><i class="material-icons me-2 text-success">check</i> Batch processing</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 class="mb-4">How to Use</h2>
+    <div class="row mb-5">
+        <div class="col-lg-10 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">
+                        <i class="material-icons me-2">help_outline</i>
+                        How to Use
+                    </h4>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <span class="fw-bold">1</span>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6>Upload Images</h6>
+                                    <p class="text-muted small mb-0">
+                                        Select up to 20 images from your device. Each image can be up to 10MB in size.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <span class="fw-bold">2</span>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6>Set Dimensions</h6>
+                                    <p class="text-muted small mb-0">
+                                        Configure output width and height in pixels for each image or copy settings to all.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <span class="fw-bold">3</span>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6>Optional Settings</h6>
+                                    <p class="text-muted small mb-0">
+                                        Set physical dimensions and DPI for print optimization.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <span class="fw-bold">4</span>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6>Download Results</h6>
+                                    <p class="text-muted small mb-0">
+                                        Download processed images individually or as a ZIP file.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 class="mb-4">Frequently Asked Questions</h2>
+    <div class="row mb-5">
+        <div class="col-lg-10 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">
+                        <i class="material-icons me-2">quiz</i>
+                        Frequently Asked Questions
+                    </h4>
+                    
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseOne">
+                                    What image formats are supported?
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse show" 
+                                 data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    We support JPEG, PNG, GIF, BMP, and TIFF formats. All processed images are output as high-quality JPEG files optimized for web and print use.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseTwo">
+                                    Do you save or store my images?
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" 
+                                 data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    No. We do not save or store your images. All processing is done securely and privately, and your images are deleted immediately after processing.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseThree">
+                                    How many images can I process at once?
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" 
+                                 data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    You can process multiple images in one go—up to 20 images at once, each with custom settings.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFour">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseFour">
+                                    How does DPI setting work?
+                                </button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" 
+                                 data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    DPI (Dots Per Inch) controls print quality. Higher DPI values result in better print quality but larger file sizes. 300 DPI is recommended for high-quality prints, while 72-150 DPI is suitable for web use.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 class="mb-4">Ready to Resize Your Images?</h2>
+    <div class="text-center mb-5">
+        <div class="card">
+            <div class="card-body py-5">
+                <h3 class="mb-3">Ready to Resize Your Images?</h3>
+                <p class="text-muted mb-4">
+                    Start processing your images with professional-grade tools and settings.
+                </p>
+                <a href="{% url 'home' %}" class="btn btn-primary btn-lg">
+                    <i class="material-icons me-2">cloud_upload</i>
+                    Start Processing Images
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
