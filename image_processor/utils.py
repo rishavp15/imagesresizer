@@ -185,21 +185,31 @@ def validate_image_file(file):
     except Exception as e:
         return False, f"Invalid image file: {str(e)}"
 
-def get_image_info(file):
+def get_image_info(image_file):
     """
-    Get basic information about an image file
+    Get basic information about an uploaded image file
     """
     try:
-        with Image.open(file) as img:
+        print(f"[DEBUG] get_image_info: processing file {image_file.name}")
+        print(f"[DEBUG] File size: {image_file.size} bytes")
+        
+        # Open the image to get dimensions
+        with Image.open(image_file) as img:
+            width, height = img.size
+            print(f"[DEBUG] Image dimensions: {width}x{height}, mode: {img.mode}")
+            
             return {
-                'width': img.width,
-                'height': img.height,
+                'width': width,
+                'height': height,
+                'size': image_file.size,
                 'format': img.format,
-                'mode': img.mode,
-                'size': file.size
+                'mode': img.mode
             }
-    except Exception:
-        return None
+    except Exception as e:
+        print(f"[DEBUG] Error in get_image_info: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 def calculate_optimal_dimensions(original_width, original_height, max_width=None, max_height=None):
     """
@@ -246,36 +256,56 @@ def find_optimal_quality(img, target_size_bytes, dpi_value):
     """
     Find the optimal JPEG quality to meet the target file size using binary search.
     """
-    low = 1
-    high = 100
-    best_quality = -1
-    best_image_buffer = None
+    try:
+        print(f"[DEBUG] find_optimal_quality: target_size={target_size_bytes}, dpi={dpi_value}")
+        low = 1
+        high = 100
+        best_quality = -1
+        best_image_buffer = None
 
-    while low <= high:
-        quality = (low + high) // 2
-        buffer = io.BytesIO()
-        img.save(buffer, format='JPEG', quality=quality, dpi=(dpi_value, dpi_value), optimize=True)
-        size = buffer.tell()
-
-        if size <= target_size_bytes:
-            best_quality = quality
-            best_image_buffer = buffer
-            low = quality + 1
-        else:
-            high = quality - 1
+        while low <= high:
+            quality = (low + high) // 2
+            print(f"[DEBUG] Testing quality: {quality}")
             
-    return best_image_buffer, best_quality
+            buffer = io.BytesIO()
+            img.save(buffer, format='JPEG', quality=quality, dpi=(dpi_value, dpi_value), optimize=True)
+            size = buffer.tell()
+            
+            print(f"[DEBUG] Quality {quality} produced size: {size} bytes")
+
+            if size <= target_size_bytes:
+                best_quality = quality
+                best_image_buffer = buffer
+                low = quality + 1
+            else:
+                high = quality - 1
+                
+        print(f"[DEBUG] Best quality found: {best_quality}")
+        return best_image_buffer, best_quality
+        
+    except Exception as e:
+        print(f"[DEBUG] Error in find_optimal_quality: {e}")
+        import traceback
+        traceback.print_exc()
+        return None, -1
 
 def process_image_with_size_limit(image_request, target_size_bytes):
     """
     Process image to meet a target file size.
     """
     try:
+        print(f"[DEBUG] Starting process_image_with_size_limit for {image_request.original_filename}")
+        print(f"[DEBUG] Target size: {target_size_bytes} bytes")
+        
         with Image.open(image_request.original_image.path) as img:
+            print(f"[DEBUG] Opened image: {img.size}, mode: {img.mode}")
+            
             if img.mode != 'RGB':
+                print(f"[DEBUG] Converting image from {img.mode} to RGB")
                 img = img.convert('RGB')
 
             # Resize the image to the requested output dimensions
+            print(f"[DEBUG] Resizing to {image_request.output_width}x{image_request.output_height}")
             resized_img = img.resize(
                 (image_request.output_width, image_request.output_height),
                 Image.Resampling.LANCZOS
@@ -295,17 +325,25 @@ def process_image_with_size_limit(image_request, target_size_bytes):
                     width_dpi = image_request.output_width / width_inches
                     height_dpi = image_request.output_height / height_inches
                     dpi_value = int(min(width_dpi, height_dpi))
+            
+            print(f"[DEBUG] Using DPI: {dpi_value}")
 
             # Find the best quality setting for the target size
+            print(f"[DEBUG] Finding optimal quality for target size {target_size_bytes}")
             output_buffer, final_quality = find_optimal_quality(resized_img, target_size_bytes, dpi_value)
 
             if not output_buffer:
+                print(f"[DEBUG] Could not meet target file size {target_size_bytes}")
                 return False, "Could not meet the file size target. Try a larger size."
+
+            print(f"[DEBUG] Found optimal quality: {final_quality}")
+            print(f"[DEBUG] Final buffer size: {output_buffer.tell()} bytes")
 
             # Save the processed image
             original_name = os.path.splitext(image_request.original_filename)[0]
             processed_filename = f"{original_name}_resized_{image_request.output_width}x{image_request.output_height}.jpg"
             
+            print(f"[DEBUG] Saving processed image as: {processed_filename}")
             image_request.processed_image.save(
                 processed_filename,
                 ContentFile(output_buffer.getvalue()),
@@ -317,9 +355,13 @@ def process_image_with_size_limit(image_request, target_size_bytes):
             image_request.file_size = output_buffer.tell()
             image_request.save()
 
+            print(f"[DEBUG] Successfully processed image with size: {output_buffer.tell()} bytes")
             return True, "Image processed successfully."
 
     except Exception as e:
+        print(f"[DEBUG] Error in process_image_with_size_limit: {e}")
+        import traceback
+        traceback.print_exc()
         return False, f"Error processing image: {str(e)}"
 
 def optimize_image_size(img, image_request, target_size_bytes, dpi_value):
