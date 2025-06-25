@@ -44,6 +44,10 @@ def main():
     if not run_command("python manage.py migrate --noinput"):
         print("⚠️  Warning: Failed to run migrations, continuing...")
     
+    # Try to create database tables if they don't exist
+    if not run_command("python manage.py makemigrations --noinput"):
+        print("⚠️  Warning: Failed to create migrations, continuing...")
+    
     print("✅ Build completed!")
 
 if __name__ == "__main__":
