@@ -200,22 +200,51 @@ STATICFILES_DIRS = [
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Cloudinary Media Storage Configuration
+CLOUDINARY_CLOUD_NAME = get_env_variable('CLOUDINARY_CLOUD_NAME')
+CLOUDINARY_API_KEY = get_env_variable('CLOUDINARY_API_KEY')
+CLOUDINARY_API_SECRET = get_env_variable('CLOUDINARY_API_SECRET')
 
-# Cloudinary Media Storage
-if get_env_variable('CLOUDINARY_CLOUD_NAME'):
+# Debug: Print Cloudinary configuration
+print(f"DEBUG: CLOUDINARY_CLOUD_NAME = {CLOUDINARY_CLOUD_NAME}")
+print(f"DEBUG: CLOUDINARY_API_KEY = {CLOUDINARY_API_KEY[:5] if CLOUDINARY_API_KEY else 'NOT SET'}...")
+print(f"DEBUG: CLOUDINARY_API_SECRET = {CLOUDINARY_API_SECRET[:5] if CLOUDINARY_API_SECRET else 'NOT SET'}...")
+
+# Configure media storage based on environment
+if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+    print("DEBUG: Using Cloudinary storage")
+    # Use Cloudinary for media storage (production/Vercel)
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': get_env_variable('CLOUDINARY_CLOUD_NAME'),
-        'API_KEY': get_env_variable('CLOUDINARY_API_KEY'),
-        'API_SECRET': get_env_variable('CLOUDINARY_API_SECRET'),
+        'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+        'API_KEY': CLOUDINARY_API_KEY,
+        'API_SECRET': CLOUDINARY_API_SECRET,
     }
+    # Set media URL to Cloudinary
+    MEDIA_URL = f'https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/upload/'
+    # Don't set MEDIA_ROOT when using Cloudinary
+    # This prevents Django from trying to create local directories
+    MEDIA_ROOT = None
+    
+    # Force Django to use Cloudinary for all file operations
+    import cloudinary_storage
+    cloudinary_storage.storage.MediaCloudinaryStorage.auto_delete = True
+else:
+    print("DEBUG: Using local storage")
+    # Use local media storage (development only)
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 # File Upload Settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
+
+# Additional settings to prevent local directory creation
+if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+    # Force all file operations to use Cloudinary
+    FILE_UPLOAD_TEMP_DIR = None  # Don't use temporary directory
+    FILE_UPLOAD_PERMISSIONS = None  # Don't set file permissions
+    FILE_UPLOAD_DIRECTORY_PERMISSIONS = None  # Don't set directory permissions
 
 # Crispy Forms Settings
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"

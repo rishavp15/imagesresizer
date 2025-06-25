@@ -57,8 +57,9 @@ def process_image(image_request):
         if image_request.dpi <= 0:
             return False, "Invalid DPI value"
         
-        # Open the original image
-        with Image.open(image_request.original_image.path) as img:
+        # Open the original image - use the file object directly instead of path
+        # This works with both local storage and cloud storage (Cloudinary)
+        with Image.open(image_request.original_image) as img:
             # Convert to RGB if necessary (for JPEG compatibility)
             if img.mode != 'RGB':
                 img = img.convert('RGB')
@@ -145,11 +146,9 @@ def create_zip_file(session):
                     # Get the filename from the processed image
                     filename = os.path.basename(img_request.processed_image.name)
                     
-                    # Add file to ZIP
-                    zip_file.write(
-                        img_request.processed_image.path,
-                        filename
-                    )
+                    # Add file to ZIP - use the file object directly instead of path
+                    # This works with both local storage and cloud storage
+                    zip_file.writestr(filename, img_request.processed_image.read())
         
         # Read the ZIP file content
         with open(temp_zip.name, 'rb') as zip_file:
@@ -271,7 +270,7 @@ def process_image_with_size_limit(image_request, target_size_bytes):
     Process image to meet a target file size.
     """
     try:
-        with Image.open(image_request.original_image.path) as img:
+        with Image.open(image_request.original_image) as img:
             if img.mode != 'RGB':
                 img = img.convert('RGB')
 

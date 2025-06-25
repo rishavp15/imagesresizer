@@ -26,6 +26,12 @@ def home(request):
     """
     Home page with bulk image upload form
     """
+    # Debug: Check Cloudinary configuration
+    from django.conf import settings
+    print(f"DEBUG: CLOUDINARY_CLOUD_NAME = {getattr(settings, 'CLOUDINARY_CLOUD_NAME', 'NOT SET')}")
+    print(f"DEBUG: DEFAULT_FILE_STORAGE = {getattr(settings, 'DEFAULT_FILE_STORAGE', 'NOT SET')}")
+    print(f"DEBUG: MEDIA_ROOT = {getattr(settings, 'MEDIA_ROOT', 'NOT SET')}")
+    
     # Ensure database connection is healthy
     if not ensure_db_connection():
         messages.error(request, "Database connection issue. Please try again.")
@@ -49,13 +55,24 @@ def home(request):
                     image_file = request.FILES[image_field]
                     
                     # Validate image
-                    is_valid, message = validate_image_file(image_file)
-                    if not is_valid:
-                        messages.error(request, f"Image {i+1}: {message}")
+                    try:
+                        is_valid, message = validate_image_file(image_file)
+                        if not is_valid:
+                            messages.error(request, f"Image {i+1}: {message}")
+                            continue
+                    except Exception as e:
+                        messages.error(request, f"Image {i+1}: Error validating image: {str(e)}")
                         continue
                     
                     # Get original image information
-                    original_info = get_image_info(image_file)
+                    try:
+                        original_info = get_image_info(image_file)
+                        if not original_info:
+                            messages.error(request, f"Image {i+1}: Could not read image information")
+                            continue
+                    except Exception as e:
+                        messages.error(request, f"Image {i+1}: Error reading image: {str(e)}")
+                        continue
                     
                     # Get unit and dpi
                     unit = form.cleaned_data.get(f'dimension_unit_{i}', 'pixels')
@@ -107,20 +124,30 @@ def home(request):
                         continue
                     
                     # Create image processing request
-                    img_request = ImageProcessingRequest.objects.create(
-                        session=session,
-                        original_image=image_file,
-                        output_width=width,
-                        output_height=height,
-                        dpi=dpi,
-                        dimension_unit=unit,
-                        dimension_width=form.cleaned_data.get(f'cm_width_{i}') if unit == 'cm' else form.cleaned_data.get(f'inch_width_{i}'),
-                        dimension_height=form.cleaned_data.get(f'cm_height_{i}') if unit == 'cm' else form.cleaned_data.get(f'inch_height_{i}'),
-                        original_filename=image_file.name,
-                        original_width=original_info['width'],
-                        original_height=original_info['height'],
-                        original_file_size=original_info['size'],
-                    )
+                    try:
+                        img_request = ImageProcessingRequest.objects.create(
+                            session=session,
+                            original_image=image_file,
+                            output_width=width,
+                            output_height=height,
+                            dpi=dpi,
+                            dimension_unit=unit,
+                            dimension_width=form.cleaned_data.get(f'cm_width_{i}') if unit == 'cm' else form.cleaned_data.get(f'inch_width_{i}'),
+                            dimension_height=form.cleaned_data.get(f'cm_height_{i}') if unit == 'cm' else form.cleaned_data.get(f'inch_height_{i}'),
+                            original_filename=image_file.name,
+                            original_width=original_info['width'],
+                            original_height=original_info['height'],
+                            original_file_size=original_info['size'],
+                        )
+                    except OSError as e:
+                        if "Read-only file system" in str(e):
+                            messages.error(request, f"Image {i+1}: File storage configuration error. Please check Cloudinary settings.")
+                        else:
+                            messages.error(request, f"Image {i+1}: File system error: {str(e)}")
+                        continue
+                    except Exception as e:
+                        messages.error(request, f"Image {i+1}: Error creating request: {str(e)}")
+                        continue
                     
                     # Check for file size target
                     target_file_size_kb = form.cleaned_data.get(f'target_file_size_kb_{i}')
@@ -267,23 +294,8 @@ def delete_session(request, session_id):
     
     if request.method == 'POST':
         try:
-            # Delete associated files first
-            for img_request in session.images.all():
-                # Delete original image file
-                if img_request.original_image:
-                    try:
-                        if os.path.exists(img_request.original_image.path):
-                            os.remove(img_request.original_image.path)
-                    except (OSError, ValueError):
-                        pass  # File might already be deleted
-                
-                # Delete processed image file
-                if img_request.processed_image:
-                    try:
-                        if os.path.exists(img_request.processed_image.path):
-                            os.remove(img_request.processed_image.path)
-                    except (OSError, ValueError):
-                        pass  # File might already be deleted
+            # With Cloudinary storage, files are automatically managed by the cloud provider
+            # No need to manually delete files
             
             # Delete the session (this will cascade delete all related objects)
             session.delete()
@@ -349,24 +361,6 @@ def auto_delete_session(request):
         if session_id:
             try:
                 session = ImageProcessingSession.objects.get(session_id=session_id)
-                
-                # Delete associated files first
-                for img_request in session.images.all():
-                    # Delete original image file
-                    if img_request.original_image:
-                        try:
-                            if os.path.exists(img_request.original_image.path):
-                                os.remove(img_request.original_image.path)
-                        except (OSError, ValueError):
-                            pass  # File might already be deleted
-                    
-                    # Delete processed image file
-                    if img_request.processed_image:
-                        try:
-                            if os.path.exists(img_request.processed_image.path):
-                                os.remove(img_request.processed_image.path)
-                        except (OSError, ValueError):
-                            pass  # File might already be deleted
                 
                 # Delete the session (this will cascade delete all related objects)
                 session.delete()

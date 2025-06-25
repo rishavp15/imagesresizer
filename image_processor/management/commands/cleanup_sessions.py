@@ -47,29 +47,11 @@ class Command(BaseCommand):
         
         # Delete old sessions and their files
         deleted_count = 0
-        files_deleted = 0
         
         for session in old_sessions:
             try:
-                # Delete associated files first
-                for img_request in session.images.all():
-                    # Delete original image file
-                    if img_request.original_image:
-                        try:
-                            if os.path.exists(img_request.original_image.path):
-                                os.remove(img_request.original_image.path)
-                                files_deleted += 1
-                        except (OSError, ValueError):
-                            pass  # File might already be deleted
-                    
-                    # Delete processed image file
-                    if img_request.processed_image:
-                        try:
-                            if os.path.exists(img_request.processed_image.path):
-                                os.remove(img_request.processed_image.path)
-                                files_deleted += 1
-                        except (OSError, ValueError):
-                            pass  # File might already be deleted
+                # With Cloudinary storage, files are automatically managed by the cloud provider
+                # No need to manually delete files
                 
                 # Delete session (this will cascade delete all related objects)
                 session.delete()
@@ -82,6 +64,6 @@ class Command(BaseCommand):
         
         self.stdout.write(
             self.style.SUCCESS(
-                f'Successfully deleted {deleted_count} old sessions and {files_deleted} files'
+                f'Successfully deleted {deleted_count} old sessions'
             )
         ) 

@@ -7,12 +7,14 @@ import os
 def upload_to_images(instance, filename):
     ext = filename.split('.')[-1]
     filename = f"{uuid.uuid4()}.{ext}"
-    return os.path.join('uploads/', filename)
+    # For Cloudinary, just return the filename without path joining
+    return f"uploads/{filename}"
 
 def upload_to_processed(instance, filename):
     ext = filename.split('.')[-1]
     filename = f"processed_{uuid.uuid4()}.{ext}"
-    return os.path.join('processed/', filename)
+    # For Cloudinary, just return the filename without path joining
+    return f"processed/{filename}"
 
 class ImageProcessingSession(models.Model):
     """Model to group multiple image processing requests"""
@@ -102,41 +104,18 @@ class ImageProcessingRequest(models.Model):
 def delete_session_files(sender, instance, **kwargs):
     """
     Delete all files associated with a session before deleting the session
+    Note: With Cloudinary storage, files are automatically managed by the cloud provider
     """
-    for img_request in instance.images.all():
-        # Delete original image file
-        if img_request.original_image:
-            try:
-                if os.path.exists(img_request.original_image.path):
-                    os.remove(img_request.original_image.path)
-            except (OSError, ValueError):
-                pass  # File might already be deleted
-        
-        # Delete processed image file
-        if img_request.processed_image:
-            try:
-                if os.path.exists(img_request.processed_image.path):
-                    os.remove(img_request.processed_image.path)
-            except (OSError, ValueError):
-                pass  # File might already be deleted
+    # With Cloudinary storage, we don't need to manually delete files
+    # The cloud storage provider handles file cleanup automatically
+    pass
 
 @receiver(pre_delete, sender=ImageProcessingRequest)
 def delete_request_files(sender, instance, **kwargs):
     """
     Delete files associated with an image request before deleting the request
+    Note: With Cloudinary storage, files are automatically managed by the cloud provider
     """
-    # Delete original image file
-    if instance.original_image:
-        try:
-            if os.path.exists(instance.original_image.path):
-                os.remove(instance.original_image.path)
-        except (OSError, ValueError):
-            pass  # File might already be deleted
-    
-    # Delete processed image file
-    if instance.processed_image:
-        try:
-            if os.path.exists(instance.processed_image.path):
-                os.remove(instance.processed_image.path)
-        except (OSError, ValueError):
-            pass  # File might already be deleted
+    # With Cloudinary storage, we don't need to manually delete files
+    # The cloud storage provider handles file cleanup automatically
+    pass
