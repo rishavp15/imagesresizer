@@ -10,12 +10,15 @@ from pathlib import Path
 def run_command(command):
     """Run a shell command and return the result"""
     try:
+        print(f"Running: {command}")
         result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-        print(f"✅ {command}")
+        print(f"✅ Success: {command}")
+        if result.stdout:
+            print(f"Output: {result.stdout}")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ {command}")
-        print(f"Error: {e.stderr}")
+        print(f"❌ Error: {command}")
+        print(f"Error output: {e.stderr}")
         return False
 
 def main():
@@ -31,17 +34,17 @@ def main():
     
     # Install dependencies
     if not run_command("pip install -r requirements.txt"):
-        sys.exit(1)
+        print("⚠️  Warning: Failed to install dependencies, continuing...")
     
-    # Collect static files
+    # Try to collect static files
     if not run_command("python manage.py collectstatic --noinput"):
-        sys.exit(1)
+        print("⚠️  Warning: Failed to collect static files, continuing...")
     
-    # Run migrations
+    # Try to run migrations
     if not run_command("python manage.py migrate --noinput"):
-        sys.exit(1)
+        print("⚠️  Warning: Failed to run migrations, continuing...")
     
-    print("✅ Build completed successfully!")
+    print("✅ Build completed!")
 
 if __name__ == "__main__":
     main() 

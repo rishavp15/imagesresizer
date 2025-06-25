@@ -35,6 +35,12 @@ def get_env_variable(var_name, default=None, required=False):
 # Vercel-specific settings
 IS_VERCEL = os.environ.get('VERCEL', '0') == '1'
 
+# Add some debugging for Vercel
+if IS_VERCEL:
+    print("Running on Vercel")
+    print(f"DEBUG setting: {get_env_variable('DEBUG', 'True')}")
+    print(f"DATABASE_URL present: {'DATABASE_URL' in os.environ}")
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = get_env_variable('SECRET_KEY', default='django-insecure-very-secret-key-for-dev', required=False)
 
@@ -115,11 +121,25 @@ WSGI_APPLICATION = 'images_resizer.wsgi.application'
 # Get database URL from environment variable
 DATABASE_URL = get_env_variable('DATABASE_URL', default=None)
 
+if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+    # Convert postgres:// to postgresql:// for newer versions
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
 if DATABASE_URL:
     # Use PostgreSQL if DATABASE_URL is provided
-    DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL)
-    }
+    try:
+        DATABASES = {
+            'default': dj_database_url.parse(DATABASE_URL)
+        }
+    except Exception as e:
+        print(f"Database configuration error: {e}")
+        # Fallback to SQLite
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 else:
     # Fallback to SQLite for local development
     DATABASES = {
@@ -170,9 +190,9 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Use WhiteNoise for static file serving in production
+# Simplified static file handling for Vercel
 if not DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 else:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 

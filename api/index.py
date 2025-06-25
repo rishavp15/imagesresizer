@@ -10,4 +10,11 @@ from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'images_resizer.settings')
 
-app = get_wsgi_application() 
+# Add error handling
+try:
+    app = get_wsgi_application()
+except Exception as e:
+    print(f"Error initializing Django app: {e}")
+    import traceback
+    traceback.print_exc()
+    raise 
