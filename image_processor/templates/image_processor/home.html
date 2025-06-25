@@ -488,10 +488,15 @@
                                     </div>
                                     <div class="card-body py-3">
                                         <div class="row g-3">
-                                            <div class="col-12">
+                                            <div class="col-md-8">
                                                 <label for="id_file_size___INDEX__" class="form-label fw-bold">File Size (KB)</label>
-                                                <input type="number" class="form-control file-size-input" id="id_file_size___INDEX__" data-index="__INDEX__" placeholder="e.g. 500" min="5" max="10240" required>
-                                                <div class="form-text">Enter your desired file size in KB (5-10240 KB)</div>
+                                                <input type="number" class="form-control file-size-input" id="id_file_size___INDEX__" data-index="__INDEX__" placeholder="e.g. 500" min="5" max="10240">
+                                            </div>
+                                            <div class="col-md-4 d-flex align-items-end">
+                                                <button type="button" class="btn quick-process-btn w-100" data-index="__INDEX__" style="margin-top: 32px;">
+                                                    <i class="material-icons me-1" style="font-size: 18px;">flash_on</i>
+                                                    Quick Process
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -566,7 +571,9 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                                
+                            <!-- Hidden fields for form submission -->
+                            <input type="hidden" name="target_file_size_kb___INDEX__" id="hidden_file_size___INDEX__">
                         </div>
                     </div>
                 </div>
@@ -665,10 +672,15 @@
                                 </div>
                                 <div class="card-body py-3">
                                     <div class="row g-3">
-                                        <div class="col-12">
+                                        <div class="col-md-8">
                                             <label for="id_file_size_{{ i }}" class="form-label fw-bold">File Size (KB)</label>
-                                            <input type="number" class="form-control file-size-input" name="target_file_size_kb_{{ i }}" id="id_file_size_{{ i }}" data-index="{{ i }}" placeholder="e.g. 500" min="5" max="10240" required>
-                                            <div class="form-text">Enter your desired file size in KB (5-10240 KB)</div>
+                                            <input type="number" class="form-control file-size-input" id="id_file_size_{{ i }}" data-index="{{ i }}" placeholder="e.g. 500" min="5" max="10240">
+                                        </div>
+                                        <div class="col-md-4 d-flex align-items-end">
+                                            <button type="button" class="btn quick-process-btn w-100" data-index="{{ i }}" style="margin-top: 32px;">
+                                                <i class="material-icons me-1" style="font-size: 18px;">flash_on</i>
+                                                Quick Process
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -743,7 +755,9 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                            
+                        <!-- Hidden fields for form submission -->
+                        <input type="hidden" name="target_file_size_kb_{{ i }}" id="hidden_file_size_{{ i }}">
                     </div>
                 </div>
             </div>
@@ -1092,6 +1106,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // File size input functionality
+    const fileSizeInputs = document.querySelectorAll('.file-size-input');
+    fileSizeInputs.forEach(function(input) {
+        input.addEventListener('input', function() {
+            const index = this.dataset.index;
+            const sizeKB = this.value;
+            document.getElementById(`hidden_file_size_${index}`).value = sizeKB;
+        });
+    });
+    
     // Mobile-specific behavior: Auto-collapse additional settings on mobile
     function handleMobileCollapsible() {
         const isMobile = window.innerWidth <= 768;
@@ -1157,6 +1181,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+    });
+    
+    // Quick process button functionality
+    document.querySelectorAll('.quick-process-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const index = this.dataset.index;
+            const fileSizeInput = document.getElementById(`id_file_size_${index}`);
+            const widthInput = document.getElementById(`id_output_width_${index}`);
+            const heightInput = document.getElementById(`id_output_height_${index}`);
+            
+            // Validate inputs
+            if (!fileSizeInput.value || fileSizeInput.value < 5) {
+                alert('Please enter a valid file size (minimum 5 KB)');
+                fileSizeInput.focus();
+                return;
+            }
+            
+            if (!widthInput.value || !heightInput.value) {
+                alert('Please enter both width and height dimensions');
+                return;
+            }
+            
+            // Submit the form for this specific image
+            const form = document.getElementById('main-upload-form');
+            const submitBtn = document.getElementById('process-images-btn');
+            
+            // Temporarily change submit button text
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="material-icons me-2">hourglass_empty</i>Processing...';
+            submitBtn.disabled = true;
+            
+            // Submit form
+            form.submit();
+        });
     });
     
     // Dynamic slot management
@@ -1288,6 +1346,12 @@ document.addEventListener('DOMContentLoaded', function() {
             unitSelector.addEventListener('change', () => handleUnitChange(index));
         }
 
+        // Quick Process
+        const quickProcessBtn = newSlot.querySelector('.quick-process-btn');
+        if(quickProcessBtn){
+            quickProcessBtn.addEventListener('click', () => handleQuickProcess(index));
+        }
+
         // Mobile Collapse
         const collapseElement = newSlot.querySelector('.collapse');
         if(collapseElement){
@@ -1324,6 +1388,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleUnitChange(index) {
         // ... (logic from original 'dimension-unit-selector' change listener)
     }
+    
+    function handleQuickProcess(index) {
+        // ... (logic from quick process button listener)
+    }
+    
 });
 </script>
 {% endblock %} 

@@ -32,22 +32,13 @@ def get_env_variable(var_name, default=None, required=False):
             raise ImproperlyConfigured(f"Set the {var_name} environment variable")
         return default
 
-# Vercel-specific settings
-IS_VERCEL = os.environ.get('VERCEL', '0') == '1'
-
-# Add some debugging for Vercel
-if IS_VERCEL:
-    print("Running on Vercel")
-    print(f"DEBUG setting: {get_env_variable('DEBUG', 'True')}")
-    print(f"DATABASE_URL present: {'DATABASE_URL' in os.environ}")
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = get_env_variable('SECRET_KEY', default='django-insecure-very-secret-key-for-dev', required=False)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = get_env_variable('DEBUG', 'True') == 'True' and not IS_VERCEL
+DEBUG = get_env_variable('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = get_env_variable('ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1],*.vercel.app').split(',')
+ALLOWED_HOSTS = get_env_variable('ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1]').split(',')
 
 
 # Security settings for production
@@ -118,36 +109,9 @@ WSGI_APPLICATION = 'images_resizer.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# Get database URL from environment variable
-DATABASE_URL = get_env_variable('DATABASE_URL', default=None)
-
-if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
-    # Convert postgres:// to postgresql:// for newer versions
-    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
-
-if DATABASE_URL:
-    # Use PostgreSQL if DATABASE_URL is provided
-    try:
-        DATABASES = {
-            'default': dj_database_url.parse(DATABASE_URL)
-        }
-    except Exception as e:
-        print(f"Database configuration error: {e}")
-        # Fallback to SQLite
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
-else:
-    # Fallback to SQLite for local development
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+DATABASES = {
+    'default': dj_database_url.config(default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
+}
 
 
 # Password validation
@@ -189,12 +153,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Simplified static file handling for Vercel
-if not DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-else:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
