@@ -121,16 +121,7 @@ WSGI_APPLICATION = 'images_resizer.wsgi.application'
 # Get database URL from environment variable
 DATABASE_URL = get_env_variable('DATABASE_URL', default=None)
 
-# For Vercel, prefer SQLite unless a proper DATABASE_URL is provided
-if IS_VERCEL and not DATABASE_URL:
-    print("[DEBUG] Running on Vercel without DATABASE_URL, using SQLite")
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': '/tmp/db.sqlite3',  # Use /tmp for serverless compatibility
-        }
-    }
-elif DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
     # Convert postgres:// to postgresql:// for newer versions
     DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 
@@ -140,25 +131,16 @@ if DATABASE_URL:
         DATABASES = {
             'default': dj_database_url.parse(DATABASE_URL)
         }
-        print(f"[DEBUG] Using PostgreSQL database")
     except Exception as e:
         print(f"Database configuration error: {e}")
         # Fallback to SQLite
-        if IS_VERCEL:
-            DATABASES = {
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': '/tmp/db.sqlite3',
-                }
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
             }
-        else:
-            DATABASES = {
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': BASE_DIR / 'db.sqlite3',
-                }
-            }
-elif not IS_VERCEL:
+        }
+else:
     # Fallback to SQLite for local development
     DATABASES = {
         'default': {
@@ -166,9 +148,6 @@ elif not IS_VERCEL:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-
-# Add database connection debugging
-print(f"[DEBUG] Database configuration: {DATABASES}")
 
 
 # Password validation

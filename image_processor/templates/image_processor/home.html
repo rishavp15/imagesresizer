@@ -363,196 +363,204 @@
     </div>
 </div>
 
-<!-- Main Content -->
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <!-- Database Warning -->
-            {% if not database_available %}
-            <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
-                <i class="material-icons me-2">warning</i>
-                <strong>Database Unavailable:</strong> The database is temporarily unavailable. Some features may not work properly.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<!-- Main Image Processor -->
+<div class="container">
+    <!-- Upload Controls -->
+    <div class="card mb-4">
+        <div class="card-body py-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="mb-2">
+                        <i class="material-icons me-2">cloud_upload</i>
+                        Upload Images
+                    </h5>
+                    <p class="text-muted mb-0 small">
+                        Currently showing {{ num_images }} upload slot{% if num_images > 1 %}s{% endif %}. Each image can have different settings.
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary" id="remove-slot-btn" {% if num_images == 1 %}disabled{% endif %}>
+                            <i class="material-icons me-1">remove</i> Remove
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" id="add-slot-btn" {% if num_images == max_images %}disabled{% endif %}>
+                            <i class="material-icons me-1">add</i> Add
+                        </button>
+                    </div>
+                </div>
             </div>
-            {% endif %}
+        </div>
+    </div>
+
+    <div class="main-image-processor">
+        <h5 class="mb-4 text-primary">
+            <i class="material-icons me-2">photo_size_select_large</i>
+            Image Processor
+        </h5>
+        
+        <form method="post" enctype="multipart/form-data" id="main-upload-form" 
+              data-num-images="{{ num_images }}" data-max-images="{{ max_images }}">
+            {% csrf_token %}
             
-            <!-- Main Image Processor -->
-            <div class="main-image-processor">
-                <h5 class="mb-4 text-primary">
-                    <i class="material-icons me-2">photo_size_select_large</i>
-                    Image Processor
-                </h5>
-                
-                <form method="post" enctype="multipart/form-data" id="main-upload-form" 
-                      data-num-images="{{ num_images }}" data-max-images="{{ max_images }}">
-                    {% csrf_token %}
-                    
-                    <div class="image-slots-container">
-                        <div class="card mb-4 d-none" id="image-slot-template">
-                            <div class="card-body py-4">
-                                <h6 class="card-title text-primary mb-4">
-                                    <i class="material-icons me-1">image</i>
-                                    Image <span class="slot-number">1</span>
-                                </h6>
-                                
-                                <div class="row g-4">
-                                    <!-- Image Upload and Preview -->
-                                    <div class="col-md-4">
-                                        <label for="id_image___INDEX__" class="form-label">Select Image</label>
-                                        <div class="drag-drop-zone position-relative" data-index="__INDEX__">
-                                            <input type="file" class="form-control image-upload-input" name="image___INDEX__" id="id_image___INDEX__" accept="image/*" data-index="__INDEX__" style="opacity: 0; position: absolute; width: 100%; height: 100%; z-index: 2; cursor: pointer;">
-                                            <div class="drag-drop-overlay border border-2 border-dashed rounded-3 p-3 text-center bg-light position-relative" style="min-height: 120px;">
-                                                <div class="d-flex flex-column align-items-center justify-content-center h-100">
-                                                    <i class="material-icons text-primary mb-2" style="font-size: 32px;">cloud_upload</i>
-                                                    <div class="fw-medium text-dark mb-1">Drag & Drop</div>
-                                                    <div class="text-muted small">or click to browse</div>
-                                                    <div class="mt-2">
-                                                        <span class="badge bg-primary bg-opacity-10 text-primary">JPG, PNG, GIF</span>
-                                                    </div>
+            <div class="image-slots-container">
+                <div class="card mb-4 d-none" id="image-slot-template">
+                    <div class="card-body py-4">
+                        <h6 class="card-title text-primary mb-4">
+                            <i class="material-icons me-1">image</i>
+                            Image <span class="slot-number">1</span>
+                        </h6>
+                        
+                        <div class="row g-4">
+                            <!-- Image Upload and Preview -->
+                            <div class="col-md-4">
+                                <label for="id_image___INDEX__" class="form-label">Select Image</label>
+                                <div class="drag-drop-zone position-relative" data-index="__INDEX__">
+                                    <input type="file" class="form-control image-upload-input" name="image___INDEX__" id="id_image___INDEX__" accept="image/*" data-index="__INDEX__" style="opacity: 0; position: absolute; width: 100%; height: 100%; z-index: 2; cursor: pointer;">
+                                    <div class="drag-drop-overlay border border-2 border-dashed rounded-3 p-3 text-center bg-light position-relative" style="min-height: 120px;">
+                                        <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                                            <i class="material-icons text-primary mb-2" style="font-size: 32px;">cloud_upload</i>
+                                            <div class="fw-medium text-dark mb-1">Drag & Drop</div>
+                                            <div class="text-muted small">or click to browse</div>
+                                            <div class="mt-2">
+                                                <span class="badge bg-primary bg-opacity-10 text-primary">JPG, PNG, GIF</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="image-preview d-none mt-3" id="preview-__INDEX__">
+                                    <div class="position-relative border rounded-top-3 overflow-hidden shadow-sm">
+                                        <button type="button" class="btn btn-danger btn-sm remove-image-btn position-absolute top-0 end-0 m-2 rounded-circle p-1"
+                                                data-index="__INDEX__" style="z-index: 10; width: 28px; height: 28px;">
+                                            <i class="material-icons" style="font-size: 14px; line-height: 1;">close</i>
+                                        </button>
+                                        <div class="position-relative bg-light" style="height: 120px;">
+                                            <img src="" alt="Preview image for slot __INDEX__" class="w-100 h-100 preview-img" style="object-fit: contain;" aria-label="Image preview for slot __INDEX__">
+                                        </div>
+                                    </div>
+
+                                    <!-- Image Description -->
+                                    <div class="border border-top-0 rounded-bottom-3 shadow-sm bg-light">
+                                        <!-- Desktop: Multi-line info -->
+                                        <div class="p-3 d-none d-md-block">
+                                            <div class="mb-1">
+                                                <div class="fw-medium text-truncate" id="filename-__INDEX__">Loading...</div>
+                                            </div>
+                                            <div class="row g-2" style="font-size: 0.75rem;">
+                                                <div class="col-4">
+                                                    <div class="text-muted">Size:</div>
+                                                    <div id="filesize-__INDEX__">-</div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="text-muted">Dimensions:</div>
+                                                    <div id="dimensions-__INDEX__">-</div>
+                                                </div>
+                                                <div class="col-4">
+                                                    <div class="text-muted">Ratio:</div>
+                                                    <div id="ratio-__INDEX__">-</div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="image-preview d-none mt-3" id="preview-__INDEX__">
-                                            <div class="position-relative border rounded-top-3 overflow-hidden shadow-sm">
-                                                <button type="button" class="btn btn-danger btn-sm remove-image-btn position-absolute top-0 end-0 m-2 rounded-circle p-1"
-                                                        data-index="__INDEX__" style="z-index: 10; width: 28px; height: 28px;">
-                                                    <i class="material-icons" style="font-size: 14px; line-height: 1;">close</i>
-                                                </button>
-                                                <div class="position-relative bg-light" style="height: 120px;">
-                                                    <img src="" alt="Preview image for slot __INDEX__" class="w-100 h-100 preview-img" style="object-fit: contain;" aria-label="Image preview for slot __INDEX__">
-                                                </div>
-                                            </div>
 
-                                            <!-- Image Description -->
-                                            <div class="border border-top-0 rounded-bottom-3 shadow-sm bg-light">
-                                                <!-- Desktop: Multi-line info -->
-                                                <div class="p-3 d-none d-md-block">
-                                                    <div class="mb-1">
-                                                        <div class="fw-medium text-truncate" id="filename-__INDEX__">Loading...</div>
-                                                    </div>
-                                                    <div class="row g-2" style="font-size: 0.75rem;">
-                                                        <div class="col-4">
-                                                            <div class="text-muted">Size:</div>
-                                                            <div id="filesize-__INDEX__">-</div>
-                                                        </div>
-                                                        <div class="col-4">
-                                                            <div class="text-muted">Dimensions:</div>
-                                                            <div id="dimensions-__INDEX__">-</div>
-                                                        </div>
-                                                        <div class="col-4">
-                                                            <div class="text-muted">Ratio:</div>
-                                                            <div id="ratio-__INDEX__">-</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Mobile: Single-line info -->
-                                                <div class="p-2 d-md-none">
-                                                    <div class="d-flex justify-content-between align-items-center" style="font-size: 0.7rem;">
-                                                        <div class="text-truncate me-2" id="filename-mobile-__INDEX__">Loading...</div>
-                                                        <div class="d-flex gap-2 flex-shrink-0">
-                                                            <span id="dimensions-mobile-__INDEX__">-</span>
-                                                            <span class="opacity-75">•</span>
-                                                            <span id="filesize-mobile-__INDEX__">-</span>
-                                                        </div>
-                                                    </div>
+                                        <!-- Mobile: Single-line info -->
+                                        <div class="p-2 d-md-none">
+                                            <div class="d-flex justify-content-between align-items-center" style="font-size: 0.7rem;">
+                                                <div class="text-truncate me-2" id="filename-mobile-__INDEX__">Loading...</div>
+                                                <div class="d-flex gap-2 flex-shrink-0">
+                                                    <span id="dimensions-mobile-__INDEX__">-</span>
+                                                    <span class="opacity-75">•</span>
+                                                    <span id="filesize-mobile-__INDEX__">-</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    <!-- Settings -->
-                                    <div class="col-md-8">
-                                        <!-- Primary Feature: Target File Size -->
-                                        <div class="card mb-3 border-primary">
-                                            <div class="card-header bg-primary text-white py-3">
-                                                <h6 class="mb-0">
-                                                    <i class="material-icons me-2">storage</i>
-                                                    Target File Size
-                                                </h6>
+                                </div>
+                            </div>
+                            
+                            <!-- Settings -->
+                            <div class="col-md-8">
+                                <!-- Primary Feature: Target File Size -->
+                                <div class="card mb-3 border-primary">
+                                    <div class="card-header bg-primary text-white py-3">
+                                        <h6 class="mb-0">
+                                            <i class="material-icons me-2">storage</i>
+                                            Target File Size
+                                        </h6>
+                                    </div>
+                                    <div class="card-body py-3">
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <label for="id_file_size___INDEX__" class="form-label fw-bold">File Size (KB)</label>
+                                                <input type="number" class="form-control file-size-input" id="id_file_size___INDEX__" data-index="__INDEX__" placeholder="e.g. 500" min="5" max="10240" required>
+                                                <div class="form-text">Enter your desired file size in KB (5-10240 KB)</div>
                                             </div>
-                                            <div class="card-body py-3">
-                                                <div class="row g-3">
-                                                    <div class="col-8">
-                                                        <label for="id_file_size___INDEX__" class="form-label fw-bold">File Size (KB)</label>
-                                                        <input type="number" class="form-control file-size-input" id="id_file_size___INDEX__" data-index="__INDEX__" placeholder="e.g. 500" min="5" max="10240">
-                                                        <div class="form-text">Enter your desired file size in KB (5-10240 KB)</div>
-                                                    </div>
-                                                    <div class="col-4 d-flex align-items-end">
-                                                        <button type="button" class="btn btn-warning quick-process-btn w-100" data-index="__INDEX__">
-                                                            <i class="material-icons me-1" style="font-size: 18px;">flash_on</i>
-                                                            Quick Process
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                
-                                        <!-- Secondary Features: Dimensions and DPI -->
-                                        <div class="card border-secondary">
-                                            <div class="card-header bg-light text-secondary py-3" data-bs-toggle="collapse" data-bs-target="#additional-settings-__INDEX__" aria-expanded="false" aria-controls="additional-settings-__INDEX__" style="cursor: pointer;">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <h6 class="mb-0">
-                                                        <i class="material-icons me-2">tune</i>
-                                                        Additional Settings
-                                                    </h6>
-                                                    <i class="material-icons collapse-icon">expand_more</i>
                                         </div>
                                     </div>
-                                            <div class="collapse" id="additional-settings-__INDEX__">
-                                                <div class="card-body py-3">
-                                                    <div class="row g-3 mb-3">
-                                            <div class="col-md-4">
-                                                <label for="id_dimension_unit___INDEX__" class="form-label">Unit</label>
-                                                <select class="form-select dimension-unit-selector" name="dimension_unit___INDEX__" id="id_dimension_unit___INDEX__" data-index="__INDEX__">
-                                                    <option value="pixels" selected>Pixels</option>
-                                                    <option value="cm">Centimeters</option>
-                                                    <option value="inch">Inches</option>
-                                                </select>
-                                            </div>
+                                </div>
+                        
+                                <!-- Secondary Features: Dimensions and DPI -->
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-light text-secondary py-3" data-bs-toggle="collapse" data-bs-target="#additional-settings-__INDEX__" aria-expanded="false" aria-controls="additional-settings-__INDEX__" style="cursor: pointer;">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">
+                                                <i class="material-icons me-2">tune</i>
+                                                Additional Settings
+                                            </h6>
+                                            <i class="material-icons collapse-icon">expand_more</i>
+                                </div>
+                            </div>
+                                    <div class="collapse" id="additional-settings-__INDEX__">
+                                        <div class="card-body py-3">
+                                            <div class="row g-3 mb-3">
+                                        <div class="col-md-4">
+                                            <label for="id_dimension_unit___INDEX__" class="form-label">Unit</label>
+                                            <select class="form-select dimension-unit-selector" name="dimension_unit___INDEX__" id="id_dimension_unit___INDEX__" data-index="__INDEX__">
+                                                <option value="pixels" selected>Pixels</option>
+                                                <option value="cm">Centimeters</option>
+                                                <option value="inch">Inches</option>
+                                            </select>
                                         </div>
-                                                
-                                                <!-- Pixels Dimensions -->
-                                                <div class="row g-3 mb-3 dimension-fields dimension-pixels" id="dimension-pixels-__INDEX__">
-                                            <div class="col-md-6">
-                                                <label for="id_output_width___INDEX__" class="form-label">Width (pixels) *</label>
-                                                <input type="number" class="form-control manual-dimension" name="output_width___INDEX__" id="id_output_width___INDEX__" placeholder="e.g. 1920" min="1" data-index="__INDEX__">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label for="id_output_height___INDEX__" class="form-label">Height (pixels) *</label>
-                                                <input type="number" class="form-control manual-dimension" name="output_height___INDEX__" id="id_output_height___INDEX__" placeholder="e.g. 1080" min="1" data-index="__INDEX__">
-                                            </div>
+                                    </div>
+                                            
+                                            <!-- Pixels Dimensions -->
+                                            <div class="row g-3 mb-3 dimension-fields dimension-pixels" id="dimension-pixels-__INDEX__">
+                                        <div class="col-md-6">
+                                            <label for="id_output_width___INDEX__" class="form-label">Width (pixels) *</label>
+                                            <input type="number" class="form-control manual-dimension" name="output_width___INDEX__" id="id_output_width___INDEX__" placeholder="e.g. 1920" min="1" data-index="__INDEX__">
                                         </div>
-                                                
-                                                <!-- Centimeters Dimensions -->
-                                                <div class="row g-3 mb-3 dimension-fields dimension-cm d-none" id="dimension-cm-__INDEX__">
-                                            <div class="col-md-6">
-                                                <label for="id_cm_width___INDEX__" class="form-label">Width (cm) *</label>
-                                                <input type="number" class="form-control" name="cm_width___INDEX__" id="id_cm_width___INDEX__" step="0.01" min="0.1" placeholder="e.g. 10.0" data-index="__INDEX__">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label for="id_cm_height___INDEX__" class="form-label">Height (cm) *</label>
-                                                <input type="number" class="form-control" name="cm_height___INDEX__" id="id_cm_height___INDEX__" step="0.01" min="0.1" placeholder="e.g. 15.0" data-index="__INDEX__">
-                                            </div>
+                                        <div class="col-md-6">
+                                            <label for="id_output_height___INDEX__" class="form-label">Height (pixels) *</label>
+                                            <input type="number" class="form-control manual-dimension" name="output_height___INDEX__" id="id_output_height___INDEX__" placeholder="e.g. 1080" min="1" data-index="__INDEX__">
                                         </div>
-                                                
-                                                <!-- Inches Dimensions -->
-                                                <div class="row g-3 mb-3 dimension-fields dimension-inch d-none" id="dimension-inch-__INDEX__">
-                                            <div class="col-md-6">
-                                                <label for="id_inch_width___INDEX__" class="form-label">Width (inches) *</label>
-                                                <input type="number" class="form-control" name="inch_width___INDEX__" id="id_inch_width___INDEX__" step="0.01" min="0.1" placeholder="e.g. 4.0" data-index="__INDEX__">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label for="id_inch_height___INDEX__" class="form-label">Height (inches) *</label>
-                                                <input type="number" class="form-control" name="inch_height___INDEX__" id="id_inch_height___INDEX__" step="0.01" min="0.1" placeholder="e.g. 6.0" data-index="__INDEX__">
-                                            </div>
+                                    </div>
+                                            
+                                            <!-- Centimeters Dimensions -->
+                                            <div class="row g-3 mb-3 dimension-fields dimension-cm d-none" id="dimension-cm-__INDEX__">
+                                        <div class="col-md-6">
+                                            <label for="id_cm_width___INDEX__" class="form-label">Width (cm) *</label>
+                                            <input type="number" class="form-control" name="cm_width___INDEX__" id="id_cm_width___INDEX__" step="0.01" min="0.1" placeholder="e.g. 10.0" data-index="__INDEX__">
                                         </div>
-                                                
-                                                <div class="row g-3">
-                                            <div class="col-md-6">
-                                                <label for="id_dpi___INDEX__" class="form-label">DPI (Dots Per Inch)</label>
-                                                        <input type="number" class="form-control" name="dpi___INDEX__" id="id_dpi___INDEX__" min="72" max="600" placeholder="300">
-                                                    </div>
+                                        <div class="col-md-6">
+                                            <label for="id_cm_height___INDEX__" class="form-label">Height (cm) *</label>
+                                            <input type="number" class="form-control" name="cm_height___INDEX__" id="id_cm_height___INDEX__" step="0.01" min="0.1" placeholder="e.g. 15.0" data-index="__INDEX__">
+                                        </div>
+                                    </div>
+                                            
+                                            <!-- Inches Dimensions -->
+                                            <div class="row g-3 mb-3 dimension-fields dimension-inch d-none" id="dimension-inch-__INDEX__">
+                                        <div class="col-md-6">
+                                            <label for="id_inch_width___INDEX__" class="form-label">Width (inches) *</label>
+                                            <input type="number" class="form-control" name="inch_width___INDEX__" id="id_inch_width___INDEX__" step="0.01" min="0.1" placeholder="e.g. 4.0" data-index="__INDEX__">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="id_inch_height___INDEX__" class="form-label">Height (inches) *</label>
+                                            <input type="number" class="form-control" name="inch_height___INDEX__" id="id_inch_height___INDEX__" step="0.01" min="0.1" placeholder="e.g. 6.0" data-index="__INDEX__">
+                                        </div>
+                                    </div>
+                                            
+                                            <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="id_dpi___INDEX__" class="form-label">DPI (Dots Per Inch)</label>
+                                                    <input type="number" class="form-control" name="dpi___INDEX__" id="id_dpi___INDEX__" min="72" max="600" placeholder="300">
                                                 </div>
                                             </div>
                                         </div>
@@ -657,16 +665,10 @@
                                 </div>
                                 <div class="card-body py-3">
                                     <div class="row g-3">
-                                        <div class="col-8">
+                                        <div class="col-12">
                                             <label for="id_file_size_{{ i }}" class="form-label fw-bold">File Size (KB)</label>
-                                            <input type="number" class="form-control file-size-input" name="target_file_size_kb_{{ i }}" id="id_file_size_{{ i }}" data-index="{{ i }}" placeholder="e.g. 500" min="5" max="10240">
+                                            <input type="number" class="form-control file-size-input" name="target_file_size_kb_{{ i }}" id="id_file_size_{{ i }}" data-index="{{ i }}" placeholder="e.g. 500" min="5" max="10240" required>
                                             <div class="form-text">Enter your desired file size in KB (5-10240 KB)</div>
-                                        </div>
-                                        <div class="col-4 d-flex align-items-end">
-                                            <button type="button" class="btn btn-warning quick-process-btn w-100" data-index="{{ i }}">
-                                                <i class="material-icons me-1" style="font-size: 18px;">flash_on</i>
-                                                Quick Process
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -681,62 +683,61 @@
                                             Additional Settings
                                         </h6>
                                         <i class="material-icons collapse-icon">expand_more</i>
-                                </div>
                             </div>
-                                    <div class="collapse" id="additional-settings-{{ i }}">
-                                        <div class="card-body py-3">
-                                            <div class="row g-3 mb-3">
-                                        <div class="col-md-4">
-                                            <label for="id_dimension_unit_{{ i }}" class="form-label">Unit</label>
-                                            <select class="form-select dimension-unit-selector" name="dimension_unit_{{ i }}" id="id_dimension_unit_{{ i }}" data-index="{{ i }}">
-                                                <option value="pixels" selected>Pixels</option>
-                                                <option value="cm">Centimeters</option>
-                                                <option value="inch">Inches</option>
-                                            </select>
-                                        </div>
+                        </div>
+                                <div class="collapse" id="additional-settings-{{ i }}">
+                                    <div class="card-body py-3">
+                                        <div class="row g-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label for="id_dimension_unit_{{ i }}" class="form-label">Unit</label>
+                                        <select class="form-select dimension-unit-selector" name="dimension_unit_{{ i }}" id="id_dimension_unit_{{ i }}" data-index="{{ i }}">
+                                            <option value="pixels" selected>Pixels</option>
+                                            <option value="cm">Centimeters</option>
+                                            <option value="inch">Inches</option>
+                                        </select>
                                     </div>
-                                            
-                                            <!-- Pixels Dimensions -->
-                                            <div class="row g-3 mb-3 dimension-fields dimension-pixels" id="dimension-pixels-{{ i }}">
-                                        <div class="col-md-6">
-                                            <label for="id_output_width_{{ i }}" class="form-label">Width (pixels) *</label>
-                                            <input type="number" class="form-control manual-dimension" name="output_width_{{ i }}" id="id_output_width_{{ i }}" placeholder="e.g. 1920" min="1" data-index="{{ i }}">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="id_output_height_{{ i }}" class="form-label">Height (pixels) *</label>
-                                            <input type="number" class="form-control manual-dimension" name="output_height_{{ i }}" id="id_output_height_{{ i }}" placeholder="e.g. 1080" min="1" data-index="{{ i }}">
-                                        </div>
+                                </div>
+                                        
+                                        <!-- Pixels Dimensions -->
+                                        <div class="row g-3 mb-3 dimension-fields dimension-pixels" id="dimension-pixels-{{ i }}">
+                                    <div class="col-md-6">
+                                        <label for="id_output_width_{{ i }}" class="form-label">Width (pixels) *</label>
+                                        <input type="number" class="form-control manual-dimension" name="output_width_{{ i }}" id="id_output_width_{{ i }}" placeholder="e.g. 1920" min="1" data-index="{{ i }}">
                                     </div>
-                                            
-                                            <!-- Centimeters Dimensions -->
-                                            <div class="row g-3 mb-3 dimension-fields dimension-cm d-none" id="dimension-cm-{{ i }}">
-                                        <div class="col-md-6">
-                                            <label for="id_cm_width_{{ i }}" class="form-label">Width (cm) *</label>
-                                            <input type="number" class="form-control" name="cm_width_{{ i }}" id="id_cm_width_{{ i }}" step="0.01" min="0.1" placeholder="e.g. 10.0" data-index="{{ i }}">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="id_cm_height_{{ i }}" class="form-label">Height (cm) *</label>
-                                            <input type="number" class="form-control" name="cm_height_{{ i }}" id="id_cm_height_{{ i }}" step="0.01" min="0.1" placeholder="e.g. 15.0" data-index="{{ i }}">
-                                        </div>
+                                    <div class="col-md-6">
+                                        <label for="id_output_height_{{ i }}" class="form-label">Height (pixels) *</label>
+                                        <input type="number" class="form-control manual-dimension" name="output_height_{{ i }}" id="id_output_height_{{ i }}" placeholder="e.g. 1080" min="1" data-index="{{ i }}">
                                     </div>
-                                            
-                                            <!-- Inches Dimensions -->
-                                            <div class="row g-3 mb-3 dimension-fields dimension-inch d-none" id="dimension-inch-{{ i }}">
-                                        <div class="col-md-6">
-                                            <label for="id_inch_width_{{ i }}" class="form-label">Width (inches) *</label>
-                                            <input type="number" class="form-control" name="inch_width_{{ i }}" id="id_inch_width_{{ i }}" step="0.01" min="0.1" placeholder="e.g. 4.0" data-index="{{ i }}">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="id_inch_height_{{ i }}" class="form-label">Height (inches) *</label>
-                                            <input type="number" class="form-control" name="inch_height_{{ i }}" id="id_inch_height_{{ i }}" step="0.01" min="0.1" placeholder="e.g. 6.0" data-index="{{ i }}">
-                                        </div>
+                                </div>
+                                        
+                                        <!-- Centimeters Dimensions -->
+                                        <div class="row g-3 mb-3 dimension-fields dimension-cm d-none" id="dimension-cm-{{ i }}">
+                                    <div class="col-md-6">
+                                        <label for="id_cm_width_{{ i }}" class="form-label">Width (cm) *</label>
+                                        <input type="number" class="form-control" name="cm_width_{{ i }}" id="id_cm_width_{{ i }}" step="0.01" min="0.1" placeholder="e.g. 10.0" data-index="{{ i }}">
                                     </div>
-                                            
-                                            <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label for="id_dpi_{{ i }}" class="form-label">DPI (Dots Per Inch)</label>
-                                                    <input type="number" class="form-control" name="dpi_{{ i }}" id="id_dpi_{{ i }}" min="72" max="600" placeholder="300">
-                                                </div>
+                                    <div class="col-md-6">
+                                        <label for="id_cm_height_{{ i }}" class="form-label">Height (cm) *</label>
+                                        <input type="number" class="form-control" name="cm_height_{{ i }}" id="id_cm_height_{{ i }}" step="0.01" min="0.1" placeholder="e.g. 15.0" data-index="{{ i }}">
+                                    </div>
+                                </div>
+                                        
+                                        <!-- Inches Dimensions -->
+                                        <div class="row g-3 mb-3 dimension-fields dimension-inch d-none" id="dimension-inch-{{ i }}">
+                                    <div class="col-md-6">
+                                        <label for="id_inch_width_{{ i }}" class="form-label">Width (inches) *</label>
+                                        <input type="number" class="form-control" name="inch_width_{{ i }}" id="id_inch_width_{{ i }}" step="0.01" min="0.1" placeholder="e.g. 4.0" data-index="{{ i }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="id_inch_height_{{ i }}" class="form-label">Height (inches) *</label>
+                                        <input type="number" class="form-control" name="inch_height_{{ i }}" id="id_inch_height_{{ i }}" step="0.01" min="0.1" placeholder="e.g. 6.0" data-index="{{ i }}">
+                                    </div>
+                                </div>
+                                        
+                                        <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="id_dpi_{{ i }}" class="form-label">DPI (Dots Per Inch)</label>
+                                                <input type="number" class="form-control" name="dpi_{{ i }}" id="id_dpi_{{ i }}" min="72" max="600" placeholder="300">
                                             </div>
                                         </div>
                                     </div>
@@ -1323,55 +1324,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleUnitChange(index) {
         // ... (logic from original 'dimension-unit-selector' change listener)
     }
-
-    // Quick Process button functionality
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.quick-process-btn')) {
-            const button = e.target.closest('.quick-process-btn');
-            const index = button.getAttribute('data-index');
-            
-            // Get the form and validate required fields
-            const form = document.getElementById('main-upload-form');
-            const imageInput = document.getElementById(`id_image_${index}`);
-            const fileSizeInput = document.getElementById(`id_file_size_${index}`);
-            
-            if (!imageInput.files.length) {
-                alert('Please upload an image first!');
-                return;
-            }
-            
-            if (!fileSizeInput.value || fileSizeInput.value < 5) {
-                alert('Please enter a valid target file size (minimum 5 KB)!');
-                return;
-            }
-            
-            // Set default dimensions if not provided
-            const widthInput = document.getElementById(`id_output_width_${index}`);
-            const heightInput = document.getElementById(`id_output_height_${index}`);
-            
-            if (!widthInput.value || !heightInput.value) {
-                // Try to get dimensions from the uploaded image
-                const file = imageInput.files[0];
-                if (file) {
-                    const img = new Image();
-                    img.onload = function() {
-                        widthInput.value = this.naturalWidth;
-                        heightInput.value = this.naturalHeight;
-                        // Submit the form
-                        form.submit();
-                    };
-                    img.src = URL.createObjectURL(file);
-                    return;
-                } else {
-                    alert('Please set image dimensions or upload an image!');
-                    return;
-                }
-            }
-            
-            // Submit the form
-            form.submit();
-        }
-    });
 });
 </script>
 {% endblock %} 
