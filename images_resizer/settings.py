@@ -32,13 +32,16 @@ def get_env_variable(var_name, default=None, required=False):
             raise ImproperlyConfigured(f"Set the {var_name} environment variable")
         return default
 
+# Vercel-specific settings
+IS_VERCEL = os.environ.get('VERCEL', '0') == '1'
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = get_env_variable('SECRET_KEY', default='django-insecure-very-secret-key-for-dev', required=False)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = get_env_variable('DEBUG', 'True') == 'True'
+DEBUG = get_env_variable('DEBUG', 'True') == 'True' and not IS_VERCEL
 
-ALLOWED_HOSTS = get_env_variable('ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1]').split(',')
+ALLOWED_HOSTS = get_env_variable('ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1],*.vercel.app').split(',')
 
 
 # Security settings for production
@@ -109,9 +112,22 @@ WSGI_APPLICATION = 'images_resizer.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
-}
+# Get database URL from environment variable
+DATABASE_URL = get_env_variable('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    # Use PostgreSQL if DATABASE_URL is provided
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
+    }
+else:
+    # Fallback to SQLite for local development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -153,7 +169,12 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Use WhiteNoise for static file serving in production
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
