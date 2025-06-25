@@ -9,4 +9,5 @@ gunicorn
 dj-database-url
 boto3 
 cloudinary
-django-cloudinary-storage 
+django-cloudinary-storage
+django-db-connection-pool 

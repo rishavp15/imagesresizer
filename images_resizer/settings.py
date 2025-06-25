@@ -83,6 +83,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'image_processor.middleware.DatabaseConnectionMiddleware',
 ]
 
 ROOT_URLCONF = 'images_resizer.urls'
@@ -109,9 +110,53 @@ WSGI_APPLICATION = 'images_resizer.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
-}
+# Get database URL from environment variable
+DATABASE_URL = get_env_variable('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    # Parse the database URL and add Supabase-specific configurations
+    import dj_database_url
+    db_config = dj_database_url.parse(DATABASE_URL)
+    
+    # Add Supabase-specific configurations for Vercel
+    db_config.update({
+        'OPTIONS': {
+            'sslmode': 'require',  # Force SSL connection
+            'connect_timeout': 10,  # Connection timeout
+            'application_name': 'images_resizer',  # Application name for monitoring
+            'client_encoding': 'UTF8',
+            'options': '-c timezone=utc',
+        },
+        'CONN_MAX_AGE': 60,  # Connection pooling - keep connections alive for 60 seconds
+        'CONN_HEALTH_CHECKS': True,  # Enable connection health checks
+        'ATOMIC_REQUESTS': False,  # Disable atomic requests for better performance
+        'AUTOCOMMIT': True,  # Enable autocommit
+    })
+    
+    # Force IPv4 connection if IPv6 fails
+    if 'HOST' in db_config:
+        # Try to resolve host to IPv4 if possible
+        try:
+            import socket
+            host = db_config['HOST']
+            # Try to get IPv4 address
+            ipv4_address = socket.gethostbyname(host)
+            db_config['HOST'] = ipv4_address
+        except (socket.gaierror, socket.herror):
+            # If resolution fails, keep original host
+            pass
+    
+    DATABASES = {
+        'default': db_config
+    }
+else:
+    # Fallback to SQLite for local development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation

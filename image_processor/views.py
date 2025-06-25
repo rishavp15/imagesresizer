@@ -19,11 +19,18 @@ from .utils import (
     process_image, create_zip_file, validate_image_file, get_image_info,
     get_preset_categories, PRESET_SIZES, process_image_with_size_limit
 )
+from .db_utils import retry_on_db_error, ensure_db_connection, close_db_connections
 
+@retry_on_db_error(max_retries=3, delay=1)
 def home(request):
     """
     Home page with bulk image upload form
     """
+    # Ensure database connection is healthy
+    if not ensure_db_connection():
+        messages.error(request, "Database connection issue. Please try again.")
+        return render(request, 'image_processor/home.html', {'form': BulkImageProcessingForm()})
+    
     num_images = int(request.GET.get('num_images', 1))
     
     if request.method == 'POST':
