@@ -43,6 +43,11 @@ def home(request):
         form = BulkImageProcessingForm(request.POST, request.FILES, num_images=num_images)
         
         if form.is_valid():
+            # Debug: Print form data
+            print(f"DEBUG: Form is valid")
+            print(f"DEBUG: Number of files: {len(request.FILES)}")
+            print(f"DEBUG: Files keys: {list(request.FILES.keys())}")
+            
             # Create a new session
             session = ImageProcessingSession.objects.create()
             
@@ -53,6 +58,11 @@ def home(request):
                 
                 if image_field in request.FILES:
                     image_file = request.FILES[image_field]
+                    
+                    # Validate that image_file is not None
+                    if not image_file:
+                        messages.error(request, f"Image {i+1}: No file was uploaded")
+                        continue
                     
                     # Validate image
                     try:
@@ -125,6 +135,15 @@ def home(request):
                     
                     # Create image processing request
                     try:
+                        # Additional validation before creating the request
+                        if not image_file or not image_file.name:
+                            messages.error(request, f"Image {i+1}: Invalid file object")
+                            continue
+                            
+                        if not width or not height:
+                            messages.error(request, f"Image {i+1}: Invalid dimensions calculated")
+                            continue
+                            
                         img_request = ImageProcessingRequest.objects.create(
                             session=session,
                             original_image=image_file,
