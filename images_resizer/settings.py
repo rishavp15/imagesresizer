@@ -225,10 +225,6 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     # Don't set MEDIA_ROOT when using Cloudinary
     # This prevents Django from trying to create local directories
     MEDIA_ROOT = None
-    
-    # Force Django to use Cloudinary for all file operations
-    import cloudinary_storage
-    cloudinary_storage.storage.MediaCloudinaryStorage.auto_delete = True
 else:
     print("DEBUG: Using local storage")
     # Use local media storage (development only)
