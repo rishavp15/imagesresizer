@@ -225,6 +225,26 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     # Don't set MEDIA_ROOT when using Cloudinary
     # This prevents Django from trying to create local directories
     MEDIA_ROOT = None
+    
+    # Force all file fields to use Cloudinary
+    CLOUDINARY_STORAGE.update({
+        'STATICFILES_STORAGE': 'cloudinary_storage.storage.StaticHashedCloudinaryStorage',
+        'STATIC_IMAGES_EXTENSIONS': ['jpg', 'jpe', 'jpeg', 'jpc', 'jp2', 'j2k', 'wdp', 'jxr', 'hdp', 'png', 'gif', 'webp', 'bmp', 'tif', 'tiff', 'ico'],
+        'MAGIC_FILE_PATH': 'magic',
+    })
+    
+    # Debug: Verify Cloudinary configuration
+    print(f"DEBUG: CLOUDINARY_STORAGE config: {CLOUDINARY_STORAGE}")
+    print(f"DEBUG: DEFAULT_FILE_STORAGE: {DEFAULT_FILE_STORAGE}")
+    print(f"DEBUG: MEDIA_ROOT: {MEDIA_ROOT}")
+    
+    # Import and verify Cloudinary storage
+    try:
+        from cloudinary_storage.storage import MediaCloudinaryStorage
+        print(f"DEBUG: Cloudinary storage imported successfully")
+    except ImportError as e:
+        print(f"DEBUG: Error importing Cloudinary storage: {e}")
+        raise
 else:
     print("DEBUG: Using local storage")
     # Use local media storage (development only)
