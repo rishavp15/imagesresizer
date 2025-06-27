@@ -9,10 +9,10 @@ import time
 
 def cloudinary_upload_path(instance, filename):
     """Generate upload path for Cloudinary storage"""
-    # Use session ID to organize files
-    session_id = instance.session.session_id if instance.session else 'orphaned'
+    # Use session ID to organize files (shortened)
+    session_id = str(instance.session.session_id)[:8] if instance.session else 'orphaned'
     
-    # Clean filename - remove special characters and spaces
+    # Clean filename - remove special characters and spaces, keep it short
     base_name = os.path.splitext(filename)[0]
     ext = os.path.splitext(filename)[1].lower()
     
@@ -21,13 +21,16 @@ def cloudinary_upload_path(instance, filename):
     clean_base_name = re.sub(r'_+', '_', clean_base_name)  # Replace multiple underscores with single
     clean_base_name = clean_base_name.strip('_')  # Remove leading/trailing underscores
     
-    # Add timestamp to avoid conflicts
-    timestamp = int(time.time())
+    # Truncate base name to keep path short
+    if len(clean_base_name) > 20:
+        clean_base_name = clean_base_name[:20]
+    
+    # Add short timestamp to avoid conflicts
+    timestamp = int(time.time()) % 1000000  # Use modulo to keep it shorter
     clean_name = f"{clean_base_name}_{timestamp}{ext}"
     
-    # Create a simple path structure for Cloudinary
-    upload_path = f"image_processor/{session_id}/{clean_name}"
-    print(f"DEBUG: Generated upload path: {upload_path}")
+    # Create a shorter path structure for Cloudinary
+    upload_path = f"img/{session_id}/{clean_name}"
     return upload_path
 
 class ImageProcessingSession(models.Model):
@@ -59,8 +62,8 @@ class ImageProcessingRequest(models.Model):
     session = models.ForeignKey(ImageProcessingSession, on_delete=models.CASCADE, related_name='images')
     
     # Use default storage configuration from settings
-    original_image = models.ImageField(upload_to=cloudinary_upload_path, max_length=500)
-    processed_image = models.ImageField(upload_to=cloudinary_upload_path, max_length=500, null=True, blank=True)
+    original_image = models.ImageField(upload_to=cloudinary_upload_path)
+    processed_image = models.ImageField(upload_to=cloudinary_upload_path, null=True, blank=True)
     
     # Output file type
     output_file_type = models.CharField(max_length=4, choices=OUTPUT_FILE_TYPE_CHOICES, default='jpg', help_text="Output file format")
@@ -98,50 +101,14 @@ class ImageProcessingRequest(models.Model):
         return f"{self.original_filename} - {self.output_width}x{self.output_height}"
     
     def save(self, *args, **kwargs):
-        print(f"DEBUG: Model save called for ImageProcessingRequest")
-        print(f"DEBUG: Original image: {self.original_image}")
-        print(f"DEBUG: Original filename: {self.original_filename}")
-        print(f"DEBUG: STORAGES config: {getattr(settings, 'STORAGES', 'Not set')}")
-        print(f"DEBUG: MEDIA_ROOT: {getattr(settings, 'MEDIA_ROOT', 'Not set')}")
-        
-        # Check if we're using Cloudinary
-        if hasattr(settings, 'CLOUDINARY_CLOUD_NAME') and settings.CLOUDINARY_CLOUD_NAME:
-            print(f"DEBUG: Cloudinary is configured: {settings.CLOUDINARY_CLOUD_NAME}")
-        else:
-            print(f"DEBUG: Cloudinary is NOT configured")
-        
-        # Debug file information before saving
-        if self.original_image:
-            print(f"DEBUG: File object type: {type(self.original_image)}")
-            print(f"DEBUG: File name: {getattr(self.original_image, 'name', 'No name')}")
-            print(f"DEBUG: File size: {getattr(self.original_image, 'size', 'No size')}")
-            print(f"DEBUG: File content type: {getattr(self.original_image, 'content_type', 'No content type')}")
-            
-            # Check if file is readable
-            try:
-                if hasattr(self.original_image, 'read'):
-                    # Reset file pointer to beginning
-                    self.original_image.seek(0)
-                    # Read first few bytes to check if file is valid
-                    first_bytes = self.original_image.read(10)
-                    print(f"DEBUG: First 10 bytes: {first_bytes}")
-                    # Reset file pointer back to beginning
-                    self.original_image.seek(0)
-                else:
-                    print(f"DEBUG: File object has no read method")
-            except Exception as e:
-                print(f"DEBUG: Error reading file: {str(e)}")
-        
         if self.original_image and not self.original_filename:
             # Extract filename from the uploaded file name
             if hasattr(self.original_image, 'name'):
                 # For Cloudinary, the name might be a full path, so get the basename
                 self.original_filename = os.path.basename(self.original_image.name)
-                print(f"DEBUG: Extracted filename: {self.original_filename}")
             else:
                 # Fallback if no name attribute
                 self.original_filename = "uploaded_image"
-                print(f"DEBUG: Using fallback filename: {self.original_filename}")
         
         # Validate dimensions
         if self.output_width <= 0 or self.output_height <= 0:
@@ -156,16 +123,7 @@ class ImageProcessingRequest(models.Model):
             if self.dimension_width <= 0 or self.dimension_height <= 0:
                 raise ValueError("Physical dimensions must be positive")
         
-        print(f"DEBUG: Calling super().save()")
-        try:
-            super().save(*args, **kwargs)
-            print(f"DEBUG: Model save completed successfully")
-        except Exception as e:
-            print(f"DEBUG: Error during super().save(): {str(e)}")
-            print(f"DEBUG: Error type: {type(e)}")
-            import traceback
-            print(f"DEBUG: Save error traceback: {traceback.format_exc()}")
-            raise
+        super().save(*args, **kwargs)
 
 @receiver(pre_delete, sender=ImageProcessingSession)
 def delete_session_files(sender, instance, **kwargs):
