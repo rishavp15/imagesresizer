@@ -230,6 +230,40 @@ def get_image_info(file):
     except Exception:
         return None
 
+def calculate_dimensions(original_info, unit, dpi, output_width=None, output_height=None, cm_width=None, cm_height=None, inch_width=None, inch_height=None):
+    """
+    Calculate final dimensions based on unit and input values
+    """
+    if unit == 'pixels':
+        # Use pixel dimensions directly
+        if output_width and output_height:
+            return output_width, output_height
+        else:
+            return None, None
+    
+    elif unit == 'cm':
+        # Convert cm to pixels using DPI
+        if cm_width and cm_height and dpi:
+            # Convert cm to inches, then to pixels
+            width_pixels = int(round((cm_width / 2.54) * dpi))
+            height_pixels = int(round((cm_height / 2.54) * dpi))
+            return width_pixels, height_pixels
+        else:
+            return None, None
+    
+    elif unit == 'inch':
+        # Convert inches to pixels using DPI
+        if inch_width and inch_height and dpi:
+            width_pixels = int(round(inch_width * dpi))
+            height_pixels = int(round(inch_height * dpi))
+            return width_pixels, height_pixels
+        else:
+            return None, None
+    
+    else:
+        # Default to original dimensions
+        return original_info['width'], original_info['height']
+
 def calculate_optimal_dimensions(original_width, original_height, max_width=None, max_height=None):
     """
     Calculate optimal dimensions while maintaining aspect ratio

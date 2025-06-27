@@ -17,7 +17,7 @@ from .models import ImageProcessingSession, ImageProcessingRequest
 from .forms import BulkImageProcessingForm
 from .utils import (
     process_image, create_zip_file, validate_image_file, get_image_info,
-    get_preset_categories, PRESET_SIZES, process_image_with_size_limit
+    get_preset_categories, PRESET_SIZES, process_image_with_size_limit, calculate_dimensions
 )
 from .db_utils import retry_on_db_error, ensure_db_connection, close_db_connections
 
