@@ -10,4 +10,5 @@ dj-database-url
 boto3 
 cloudinary
 django-cloudinary-storage
-django-db-connection-pool 
+django-db-connection-pool
+python-dotenv 

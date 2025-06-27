@@ -16,6 +16,10 @@ import dj_database_url
 import boto3
 from django.core.exceptions import ImproperlyConfigured
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -214,11 +218,13 @@ print(f"DEBUG: CLOUDINARY_API_SECRET = {CLOUDINARY_API_SECRET[:5] if CLOUDINARY_
 if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     print("DEBUG: Using Cloudinary storage")
     # Use Cloudinary for media storage (production/Vercel)
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
         'API_KEY': CLOUDINARY_API_KEY,
         'API_SECRET': CLOUDINARY_API_SECRET,
+        'STATICFILES_STORAGE': 'cloudinary_storage.storage.StaticHashedCloudinaryStorage',
+        'STATIC_IMAGES_EXTENSIONS': ['jpg', 'jpe', 'jpeg', 'jpc', 'jp2', 'j2k', 'wdp', 'jxr', 'hdp', 'png', 'gif', 'webp', 'bmp', 'tif', 'tiff', 'ico'],
+        'MAGIC_FILE_PATH': 'magic',
     }
     # Set media URL to Cloudinary
     MEDIA_URL = f'https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/upload/'
@@ -235,7 +241,6 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     
     # Debug: Verify Cloudinary configuration
     print(f"DEBUG: CLOUDINARY_STORAGE config: {CLOUDINARY_STORAGE}")
-    print(f"DEBUG: DEFAULT_FILE_STORAGE: {DEFAULT_FILE_STORAGE}")
     print(f"DEBUG: MEDIA_ROOT: {MEDIA_ROOT}")
     
     # Import and verify Cloudinary storage
@@ -261,6 +266,31 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     FILE_UPLOAD_TEMP_DIR = None  # Don't use temporary directory
     FILE_UPLOAD_PERMISSIONS = None  # Don't set file permissions
     FILE_UPLOAD_DIRECTORY_PERMISSIONS = None  # Don't set directory permissions
+    
+    # Ensure Django uses Cloudinary for all file operations
+    import cloudinary
+    import cloudinary.uploader
+    import cloudinary.api
+    
+    # Configure Cloudinary
+    cloudinary.config(
+        cloud_name=CLOUDINARY_CLOUD_NAME,
+        api_key=CLOUDINARY_API_KEY,
+        api_secret=CLOUDINARY_API_SECRET
+    )
+    
+    # Additional storage configuration to prevent filesystem fallback
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "cloudinary_storage.storage.StaticHashedCloudinaryStorage",
+        },
+    }
+    
+    print("DEBUG: Cloudinary configured successfully")
+    print(f"DEBUG: STORAGES config: {STORAGES}")
 
 # Crispy Forms Settings
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"

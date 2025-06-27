@@ -1,8 +1,19 @@
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from django.conf import settings
 import uuid
 import os
+
+def cloudinary_upload_path(instance, filename):
+    """Generate upload path for Cloudinary storage"""
+    # Use session ID to organize files
+    session_id = instance.session.session_id if instance.session else 'orphaned'
+    # Clean filename and add timestamp to avoid conflicts
+    base_name = os.path.splitext(filename)[0]
+    ext = os.path.splitext(filename)[1]
+    clean_name = f"{base_name}_{uuid.uuid4().hex[:8]}{ext}"
+    return f"image_processor/{session_id}/{clean_name}"
 
 class ImageProcessingSession(models.Model):
     """Model to group multiple image processing requests"""
@@ -31,8 +42,10 @@ class ImageProcessingRequest(models.Model):
     ]
     
     session = models.ForeignKey(ImageProcessingSession, on_delete=models.CASCADE, related_name='images')
-    original_image = models.ImageField()
-    processed_image = models.ImageField(null=True, blank=True)
+    
+    # Use default storage configuration from settings
+    original_image = models.ImageField(upload_to=cloudinary_upload_path)
+    processed_image = models.ImageField(upload_to=cloudinary_upload_path, null=True, blank=True)
     
     # Output file type
     output_file_type = models.CharField(max_length=4, choices=OUTPUT_FILE_TYPE_CHOICES, default='jpg', help_text="Output file format")
@@ -73,6 +86,14 @@ class ImageProcessingRequest(models.Model):
         print(f"DEBUG: Model save called for ImageProcessingRequest")
         print(f"DEBUG: Original image: {self.original_image}")
         print(f"DEBUG: Original filename: {self.original_filename}")
+        print(f"DEBUG: STORAGES config: {getattr(settings, 'STORAGES', 'Not set')}")
+        print(f"DEBUG: MEDIA_ROOT: {getattr(settings, 'MEDIA_ROOT', 'Not set')}")
+        
+        # Check if we're using Cloudinary
+        if hasattr(settings, 'CLOUDINARY_CLOUD_NAME') and settings.CLOUDINARY_CLOUD_NAME:
+            print(f"DEBUG: Cloudinary is configured: {settings.CLOUDINARY_CLOUD_NAME}")
+        else:
+            print(f"DEBUG: Cloudinary is NOT configured")
         
         if self.original_image and not self.original_filename:
             # Extract filename from the uploaded file name
@@ -99,8 +120,15 @@ class ImageProcessingRequest(models.Model):
                 raise ValueError("Physical dimensions must be positive")
         
         print(f"DEBUG: Calling super().save()")
-        super().save(*args, **kwargs)
-        print(f"DEBUG: Model save completed successfully")
+        try:
+            super().save(*args, **kwargs)
+            print(f"DEBUG: Model save completed successfully")
+        except Exception as e:
+            print(f"DEBUG: Error during super().save(): {str(e)}")
+            print(f"DEBUG: Error type: {type(e)}")
+            import traceback
+            print(f"DEBUG: Save error traceback: {traceback.format_exc()}")
+            raise
 
 @receiver(pre_delete, sender=ImageProcessingSession)
 def delete_session_files(sender, instance, **kwargs):
