@@ -130,6 +130,7 @@ def home(request):
                     
                     if target_file_size_kb and target_file_size_kb > 0:
                         target_size_bytes = target_file_size_kb * 1024
+                        print(f"DEBUG: Processing with size limit: {target_file_size_kb} KB")
                         try:
                             success, error_message = process_image_with_size_limit(
                                 img_request,
@@ -139,16 +140,20 @@ def home(request):
                             success, error_message = False, f"Processing error: {str(e)}"
                     else:
                         # Process with standard method
+                        print(f"DEBUG: Processing with standard method")
                         try:
                             success, error_message = process_image(img_request)
+                            print(f"DEBUG: Processing result - Success: {success}, Message: {error_message}")
                             if not success:
                                 print(f"DEBUG: Image processing failed: {error_message}")
                         except Exception as e:
                             print(f"DEBUG: Exception in image processing: {str(e)}")
                             success, error_message = False, f"Processing error: {str(e)}"
                     
+                    print(f"DEBUG: Final result - Success: {success}, Processed count: {processed_count}")
                     if success:
                         processed_count += 1
+                        print(f"DEBUG: Incremented processed count to: {processed_count}")
                     else:
                         messages.error(request, f"Image {i+1}: {error_message}")
                 else:
@@ -482,10 +487,14 @@ def _process_form_entry(request, form, i, session, image_file, original_info):
         
         if target_file_size_kb and target_file_size_kb > 0:
             target_size_bytes = target_file_size_kb * 1024
-            success, error_message = process_image_with_size_limit(
-                img_request,
-                target_size_bytes=target_size_bytes
-            )
+            print(f"DEBUG: Processing with size limit: {target_file_size_kb} KB")
+            try:
+                success, error_message = process_image_with_size_limit(
+                    img_request,
+                    target_size_bytes=target_size_bytes
+                )
+            except Exception as e:
+                success, error_message = False, f"Processing error: {str(e)}"
         else:
             success, error_message = process_image(img_request)
         
