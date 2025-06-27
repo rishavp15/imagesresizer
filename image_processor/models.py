@@ -115,8 +115,8 @@ class ImageProcessingRequest(models.Model):
             raise ValueError("Output dimensions must be positive")
         
         # Validate DPI
-        if self.dpi <= 0:
-            self.dpi = 300  # Default to 300 if invalid
+        if self.dpi is None or self.dpi <= 0:
+            self.dpi = 300  # Default to 300 if invalid or None
         
         # Validate physical dimensions if provided
         if self.dimension_width is not None and self.dimension_height is not None:

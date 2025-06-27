@@ -61,6 +61,10 @@ def home(request):
                     unit = form.cleaned_data.get(f'dimension_unit_{i}', 'pixels')
                     dpi = form.cleaned_data.get(f'dpi_{i}', 300)
                     
+                    # Ensure DPI is valid
+                    if dpi is None or dpi <= 0:
+                        dpi = 300
+                    
                     width, height = calculate_dimensions(
                         original_info, unit, dpi,
                         form.cleaned_data.get(f'output_width_{i}'),
@@ -103,6 +107,8 @@ def home(request):
                     except Exception as validation_error:
                         messages.error(request, f"Image {i+1}: File validation failed.")
                         continue
+                    
+                    print(f"DEBUG: Creating ImageProcessingRequest with DPI: {dpi}, Width: {width}, Height: {height}")
                     
                     img_request = ImageProcessingRequest.objects.create(
                         session=session,
