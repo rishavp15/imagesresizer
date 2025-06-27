@@ -136,7 +136,9 @@ def home(request):
                                 img_request,
                                 target_size_bytes=target_size_bytes
                             )
+                            print(f"DEBUG: Size-limited processing result - Success: {success}, Message: {error_message}")
                         except Exception as e:
+                            print(f"DEBUG: Exception in size-limited processing: {str(e)}")
                             success, error_message = False, f"Processing error: {str(e)}"
                     else:
                         # Process with standard method
@@ -493,7 +495,9 @@ def _process_form_entry(request, form, i, session, image_file, original_info):
                     img_request,
                     target_size_bytes=target_size_bytes
                 )
+                print(f"DEBUG: Size-limited processing result - Success: {success}, Message: {error_message}")
             except Exception as e:
+                print(f"DEBUG: Exception in size-limited processing: {str(e)}")
                 success, error_message = False, f"Processing error: {str(e)}"
         else:
             success, error_message = process_image(img_request)
