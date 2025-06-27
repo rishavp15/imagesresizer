@@ -4,18 +4,6 @@ from django.dispatch import receiver
 import uuid
 import os
 
-def upload_to_images(instance, filename):
-    ext = filename.split('.')[-1]
-    filename = f"{uuid.uuid4()}.{ext}"
-    # For Cloudinary, just return the filename without path joining
-    return f"uploads/{filename}"
-
-def upload_to_processed(instance, filename):
-    ext = filename.split('.')[-1]
-    filename = f"processed_{uuid.uuid4()}.{ext}"
-    # For Cloudinary, just return the filename without path joining
-    return f"processed/{filename}"
-
 class ImageProcessingSession(models.Model):
     """Model to group multiple image processing requests"""
     session_id = models.UUIDField(default=uuid.uuid4, unique=True)
@@ -43,8 +31,8 @@ class ImageProcessingRequest(models.Model):
     ]
     
     session = models.ForeignKey(ImageProcessingSession, on_delete=models.CASCADE, related_name='images')
-    original_image = models.ImageField(upload_to=upload_to_images)
-    processed_image = models.ImageField(upload_to=upload_to_processed, null=True, blank=True)
+    original_image = models.ImageField()
+    processed_image = models.ImageField(null=True, blank=True)
     
     # Output file type
     output_file_type = models.CharField(max_length=4, choices=OUTPUT_FILE_TYPE_CHOICES, default='jpg', help_text="Output file format")
@@ -82,8 +70,20 @@ class ImageProcessingRequest(models.Model):
         return f"{self.original_filename} - {self.output_width}x{self.output_height}"
     
     def save(self, *args, **kwargs):
+        print(f"DEBUG: Model save called for ImageProcessingRequest")
+        print(f"DEBUG: Original image: {self.original_image}")
+        print(f"DEBUG: Original filename: {self.original_filename}")
+        
         if self.original_image and not self.original_filename:
-            self.original_filename = self.original_image.name.split('/')[-1]
+            # Extract filename from the uploaded file name
+            if hasattr(self.original_image, 'name'):
+                # For Cloudinary, the name might be a full path, so get the basename
+                self.original_filename = os.path.basename(self.original_image.name)
+                print(f"DEBUG: Extracted filename: {self.original_filename}")
+            else:
+                # Fallback if no name attribute
+                self.original_filename = "uploaded_image"
+                print(f"DEBUG: Using fallback filename: {self.original_filename}")
         
         # Validate dimensions
         if self.output_width <= 0 or self.output_height <= 0:
@@ -98,7 +98,9 @@ class ImageProcessingRequest(models.Model):
             if self.dimension_width <= 0 or self.dimension_height <= 0:
                 raise ValueError("Physical dimensions must be positive")
         
+        print(f"DEBUG: Calling super().save()")
         super().save(*args, **kwargs)
+        print(f"DEBUG: Model save completed successfully")
 
 @receiver(pre_delete, sender=ImageProcessingSession)
 def delete_session_files(sender, instance, **kwargs):
