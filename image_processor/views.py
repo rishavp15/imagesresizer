@@ -125,6 +125,9 @@ def home(request):
                         original_file_size=original_info['size'],
                     )
                     
+                    # Store the original file for processing
+                    img_request._original_file = image_file
+                    
                     # Check for file size target
                     target_file_size_kb = form.cleaned_data.get(f'target_file_size_kb_{i}')
                     
@@ -479,11 +482,14 @@ def _process_form_entry(request, form, i, session, image_file, original_info):
             dimension_unit=unit,
             dimension_width=form.cleaned_data.get(f'cm_width_{i}') if unit == 'cm' else form.cleaned_data.get(f'inch_width_{i}'),
             dimension_height=form.cleaned_data.get(f'cm_height_{i}') if unit == 'cm' else form.cleaned_data.get(f'inch_height_{i}'),
-            original_filename=image_file.name.split('/')[-1],
+            original_filename=image_file.name,
             original_width=original_info['width'],
             original_height=original_info['height'],
             original_file_size=original_info['size'],
         )
+        
+        # Store the original file for processing
+        img_request._original_file = image_file
         
         target_file_size_kb = form.cleaned_data.get(f'target_file_size_kb_{i}')
         

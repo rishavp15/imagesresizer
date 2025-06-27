@@ -61,19 +61,30 @@ def process_image(image_request):
         print(f"DEBUG: Output dimensions: {image_request.output_width}x{image_request.output_height}")
         print(f"DEBUG: DPI: {image_request.dpi}")
         
+        # Use the original uploaded file instead of the saved model field
+        # This avoids issues with Cloudinary storage access immediately after creation
+        if hasattr(image_request, '_original_file'):
+            # Use the original uploaded file if available
+            file_to_process = image_request._original_file
+            print(f"DEBUG: Using original uploaded file")
+        else:
+            # Fallback to the model field
+            file_to_process = image_request.original_image
+            print(f"DEBUG: Using model field file")
+        
         # Open the original image - use the file object directly instead of path
         # This works with both local storage and cloud storage (Cloudinary)
         try:
-            print(f"DEBUG: File object type: {type(image_request.original_image)}")
-            print(f"DEBUG: File object name: {getattr(image_request.original_image, 'name', 'No name')}")
-            print(f"DEBUG: File object size: {getattr(image_request.original_image, 'size', 'No size')}")
+            print(f"DEBUG: File object type: {type(file_to_process)}")
+            print(f"DEBUG: File object name: {getattr(file_to_process, 'name', 'No name')}")
+            print(f"DEBUG: File object size: {getattr(file_to_process, 'size', 'No size')}")
             
             # Reset file pointer to beginning
-            if hasattr(image_request.original_image, 'seek'):
-                image_request.original_image.seek(0)
+            if hasattr(file_to_process, 'seek'):
+                file_to_process.seek(0)
                 print(f"DEBUG: File pointer reset to beginning")
             
-            with Image.open(image_request.original_image) as img:
+            with Image.open(file_to_process) as img:
                 print(f"DEBUG: Original image opened successfully")
                 print(f"DEBUG: Original size: {img.width}x{img.height}, Mode: {img.mode}")
                 
@@ -339,7 +350,18 @@ def process_image_with_size_limit(image_request, target_size_bytes):
         print(f"DEBUG: Starting size-limited processing for {image_request.original_filename}")
         print(f"DEBUG: Target size: {target_size_bytes} bytes ({target_size_bytes/1024:.1f} KB)")
         
-        with Image.open(image_request.original_image) as img:
+        # Use the original uploaded file instead of the saved model field
+        # This avoids issues with Cloudinary storage access immediately after creation
+        if hasattr(image_request, '_original_file'):
+            # Use the original uploaded file if available
+            file_to_process = image_request._original_file
+            print(f"DEBUG: Using original uploaded file")
+        else:
+            # Fallback to the model field
+            file_to_process = image_request.original_image
+            print(f"DEBUG: Using model field file")
+        
+        with Image.open(file_to_process) as img:
             print(f"DEBUG: Original image opened successfully")
             if img.mode != 'RGB':
                 img = img.convert('RGB')
