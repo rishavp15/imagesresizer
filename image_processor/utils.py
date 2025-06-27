@@ -398,7 +398,10 @@ def process_image_with_size_limit(image_request, target_size_bytes):
             return True, "Image processed successfully."
 
     except Exception as e:
+        import traceback
         print(f"DEBUG: Exception in process_image_with_size_limit: {str(e)}")
+        print(f"DEBUG: Exception type: {type(e)}")
+        print(f"DEBUG: Exception traceback: {traceback.format_exc()}")
         return False, f"Error processing image: {str(e)}"
 
 def optimize_image_size(img, image_request, target_size_bytes, dpi_value):
