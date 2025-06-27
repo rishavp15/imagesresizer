@@ -220,8 +220,8 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
         'STATIC_IMAGES_EXTENSIONS': ['jpg', 'jpe', 'jpeg', 'jpc', 'jp2', 'j2k', 'wdp', 'jxr', 'hdp', 'png', 'gif', 'webp', 'bmp', 'tif', 'tiff', 'ico'],
         'MAGIC_FILE_PATH': 'magic',
     }
-    # Set media URL to Cloudinary
-    MEDIA_URL = f'https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/upload/'
+    # Don't set MEDIA_URL when using Cloudinary - let Cloudinary storage handle URLs
+    # MEDIA_URL = f'https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/upload/'
     # Don't set MEDIA_ROOT when using Cloudinary
     # This prevents Django from trying to create local directories
     MEDIA_ROOT = None
