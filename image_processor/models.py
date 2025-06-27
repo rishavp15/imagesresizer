@@ -59,8 +59,8 @@ class ImageProcessingRequest(models.Model):
     session = models.ForeignKey(ImageProcessingSession, on_delete=models.CASCADE, related_name='images')
     
     # Use default storage configuration from settings
-    original_image = models.ImageField(upload_to=cloudinary_upload_path)
-    processed_image = models.ImageField(upload_to=cloudinary_upload_path, null=True, blank=True)
+    original_image = models.ImageField(upload_to=cloudinary_upload_path, max_length=500)
+    processed_image = models.ImageField(upload_to=cloudinary_upload_path, max_length=500, null=True, blank=True)
     
     # Output file type
     output_file_type = models.CharField(max_length=4, choices=OUTPUT_FILE_TYPE_CHOICES, default='jpg', help_text="Output file format")
