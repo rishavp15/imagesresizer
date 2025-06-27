@@ -279,6 +279,15 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
         api_secret=CLOUDINARY_API_SECRET
     )
     
+    # Test Cloudinary connection
+    try:
+        # Try a simple API call to test the connection
+        result = cloudinary.api.ping()
+        print(f"DEBUG: Cloudinary connection test successful: {result}")
+    except Exception as e:
+        print(f"DEBUG: Cloudinary connection test failed: {str(e)}")
+        print(f"DEBUG: This might indicate an issue with Cloudinary credentials")
+    
     # Additional storage configuration to prevent filesystem fallback
     STORAGES = {
         "default": {

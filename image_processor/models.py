@@ -4,16 +4,31 @@ from django.dispatch import receiver
 from django.conf import settings
 import uuid
 import os
+import re
+import time
 
 def cloudinary_upload_path(instance, filename):
     """Generate upload path for Cloudinary storage"""
     # Use session ID to organize files
     session_id = instance.session.session_id if instance.session else 'orphaned'
-    # Clean filename and add timestamp to avoid conflicts
+    
+    # Clean filename - remove special characters and spaces
     base_name = os.path.splitext(filename)[0]
-    ext = os.path.splitext(filename)[1]
-    clean_name = f"{base_name}_{uuid.uuid4().hex[:8]}{ext}"
-    return f"image_processor/{session_id}/{clean_name}"
+    ext = os.path.splitext(filename)[1].lower()
+    
+    # Clean the base name - remove special characters and replace spaces with underscores
+    clean_base_name = re.sub(r'[^a-zA-Z0-9_-]', '_', base_name)
+    clean_base_name = re.sub(r'_+', '_', clean_base_name)  # Replace multiple underscores with single
+    clean_base_name = clean_base_name.strip('_')  # Remove leading/trailing underscores
+    
+    # Add timestamp to avoid conflicts
+    timestamp = int(time.time())
+    clean_name = f"{clean_base_name}_{timestamp}{ext}"
+    
+    # Create a simple path structure for Cloudinary
+    upload_path = f"image_processor/{session_id}/{clean_name}"
+    print(f"DEBUG: Generated upload path: {upload_path}")
+    return upload_path
 
 class ImageProcessingSession(models.Model):
     """Model to group multiple image processing requests"""
@@ -94,6 +109,28 @@ class ImageProcessingRequest(models.Model):
             print(f"DEBUG: Cloudinary is configured: {settings.CLOUDINARY_CLOUD_NAME}")
         else:
             print(f"DEBUG: Cloudinary is NOT configured")
+        
+        # Debug file information before saving
+        if self.original_image:
+            print(f"DEBUG: File object type: {type(self.original_image)}")
+            print(f"DEBUG: File name: {getattr(self.original_image, 'name', 'No name')}")
+            print(f"DEBUG: File size: {getattr(self.original_image, 'size', 'No size')}")
+            print(f"DEBUG: File content type: {getattr(self.original_image, 'content_type', 'No content type')}")
+            
+            # Check if file is readable
+            try:
+                if hasattr(self.original_image, 'read'):
+                    # Reset file pointer to beginning
+                    self.original_image.seek(0)
+                    # Read first few bytes to check if file is valid
+                    first_bytes = self.original_image.read(10)
+                    print(f"DEBUG: First 10 bytes: {first_bytes}")
+                    # Reset file pointer back to beginning
+                    self.original_image.seek(0)
+                else:
+                    print(f"DEBUG: File object has no read method")
+            except Exception as e:
+                print(f"DEBUG: Error reading file: {str(e)}")
         
         if self.original_image and not self.original_filename:
             # Extract filename from the uploaded file name

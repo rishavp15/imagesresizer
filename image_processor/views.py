@@ -214,6 +214,41 @@ def home(request):
                             continue
                             
                         print(f"DEBUG: Creating ImageProcessingRequest with all validated data")
+                        
+                        # Additional validation for Cloudinary upload
+                        try:
+                            # Validate file format
+                            if not image_file.content_type.startswith('image/'):
+                                print(f"DEBUG: Invalid content type: {image_file.content_type}")
+                                messages.error(request, f"Image {i+1}: Invalid file format. Please upload an image file.")
+                                continue
+                            
+                            # Check file size (Cloudinary has limits)
+                            if image_file.size > 100 * 1024 * 1024:  # 100MB limit
+                                print(f"DEBUG: File too large: {image_file.size} bytes")
+                                messages.error(request, f"Image {i+1}: File too large. Maximum size is 100MB.")
+                                continue
+                            
+                            # Validate image format using Pillow
+                            try:
+                                # Reset file pointer
+                                image_file.seek(0)
+                                # Try to open with Pillow to validate
+                                with Image.open(image_file) as img:
+                                    img.verify()  # Verify the image
+                                # Reset file pointer again
+                                image_file.seek(0)
+                                print(f"DEBUG: Image validation successful with Pillow")
+                            except Exception as img_error:
+                                print(f"DEBUG: Pillow validation failed: {str(img_error)}")
+                                messages.error(request, f"Image {i+1}: Invalid image file. Please upload a valid image.")
+                                continue
+                            
+                        except Exception as validation_error:
+                            print(f"DEBUG: File validation error: {str(validation_error)}")
+                            messages.error(request, f"Image {i+1}: File validation failed.")
+                            continue
+                        
                         img_request = ImageProcessingRequest.objects.create(
                             session=session,
                             original_image=image_file,
