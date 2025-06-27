@@ -24,324 +24,143 @@ from .db_utils import retry_on_db_error, ensure_db_connection, close_db_connecti
 @retry_on_db_error(max_retries=3, delay=1)
 def home(request):
     """
-    Home page with bulk image upload form
+    Main view for bulk image processing
     """
-    print("DEBUG: ===== HOME VIEW STARTED =====")
-    print(f"DEBUG: Request method: {request.method}")
-    print(f"DEBUG: Request content type: {request.content_type}")
-    
-    # Debug: Check Cloudinary configuration
-    from django.conf import settings
-    print(f"DEBUG: CLOUDINARY_CLOUD_NAME = {getattr(settings, 'CLOUDINARY_CLOUD_NAME', 'NOT SET')}")
-    print(f"DEBUG: DEFAULT_FILE_STORAGE = {getattr(settings, 'DEFAULT_FILE_STORAGE', 'NOT SET')}")
-    print(f"DEBUG: MEDIA_ROOT = {getattr(settings, 'MEDIA_ROOT', 'NOT SET')}")
-    
-    # Ensure database connection is healthy
-    if not ensure_db_connection():
-        print("DEBUG: Database connection failed")
-        messages.error(request, "Database connection issue. Please try again.")
-        return render(request, 'image_processor/home.html', {'form': BulkImageProcessingForm()})
-    
-    print("DEBUG: Database connection successful")
-    
     num_images = int(request.GET.get('num_images', 1))
-    print(f"DEBUG: Number of images to process: {num_images}")
+    num_images = max(1, min(num_images, 20))  # Limit between 1 and 20
     
     if request.method == 'POST':
-        print("DEBUG: Processing POST request")
-        print(f"DEBUG: POST data keys: {list(request.POST.keys())}")
-        print(f"DEBUG: FILES data keys: {list(request.FILES.keys())}")
-        print(f"DEBUG: Number of files uploaded: {len(request.FILES)}")
-        
         form = BulkImageProcessingForm(request.POST, request.FILES, num_images=num_images)
         
         if form.is_valid():
-            print("DEBUG: Form is valid")
-            print(f"DEBUG: Number of files: {len(request.FILES)}")
-            print(f"DEBUG: Files keys: {list(request.FILES.keys())}")
+            # Create a new session for this processing batch
+            session = ImageProcessingSession.objects.create()
             
-            # Create a new session
-            try:
-                session = ImageProcessingSession.objects.create()
-                print(f"DEBUG: Created session: {session.session_id}")
-            except Exception as e:
-                print(f"DEBUG: Error creating session: {str(e)}")
-                messages.error(request, f"Error creating session: {str(e)}")
-                return render(request, 'image_processor/home.html', {'form': form})
-            
-            # Process each uploaded image
             processed_count = 0
+            num_images = form.cleaned_data.get('num_images', 1)
+            
             for i in range(num_images):
-                print(f"DEBUG: ===== PROCESSING IMAGE {i+1} =====")
                 image_field = f'image_{i}'
-                
-                print(f"DEBUG: Checking field {image_field}")
-                print(f"DEBUG: Available fields: {list(request.FILES.keys())}")
                 
                 if image_field in request.FILES:
                     image_file = request.FILES[image_field]
-                    print(f"DEBUG: Found file for {image_field}: {image_file.name if image_file else 'None'}")
-                    print(f"DEBUG: File size: {image_file.size if image_file else 'None'}")
-                    print(f"DEBUG: File type: {type(image_file)}")
-                    print(f"DEBUG: File content type: {getattr(image_file, 'content_type', 'Unknown')}")
-                    
-                    # Validate that image_file is not None
-                    if not image_file:
-                        print(f"DEBUG: Image file is None for {image_field}")
-                        messages.error(request, f"Image {i+1}: No file was uploaded")
-                        continue
                     
                     # Validate image
-                    try:
-                        print(f"DEBUG: Starting image validation for {image_file.name}")
-                        is_valid, message = validate_image_file(image_file)
-                        print(f"DEBUG: Validation result: {is_valid}, {message}")
-                        if not is_valid:
-                            print(f"DEBUG: Image validation failed: {message}")
-                            messages.error(request, f"Image {i+1}: {message}")
-                            continue
-                    except Exception as e:
-                        print(f"DEBUG: Validation error: {str(e)}")
-                        print(f"DEBUG: Validation error type: {type(e)}")
-                        import traceback
-                        print(f"DEBUG: Validation traceback: {traceback.format_exc()}")
-                        messages.error(request, f"Image {i+1}: Error validating image: {str(e)}")
+                    is_valid, validation_message = validate_image_file(image_file)
+                    if not is_valid:
+                        messages.error(request, f"Image {i+1}: {validation_message}")
                         continue
                     
-                    # Get original image information
-                    try:
-                        print(f"DEBUG: Getting image info for {image_file.name}")
-                        original_info = get_image_info(image_file)
-                        print(f"DEBUG: Image info: {original_info}")
-                        if not original_info:
-                            print(f"DEBUG: Could not get image info")
-                            messages.error(request, f"Image {i+1}: Could not read image information")
-                            continue
-                    except Exception as e:
-                        print(f"DEBUG: Image info error: {str(e)}")
-                        print(f"DEBUG: Image info error type: {type(e)}")
-                        import traceback
-                        print(f"DEBUG: Image info traceback: {traceback.format_exc()}")
-                        messages.error(request, f"Image {i+1}: Error reading image: {str(e)}")
+                    # Get image information
+                    original_info = get_image_info(image_file)
+                    if not original_info:
+                        messages.error(request, f"Image {i+1}: Could not read image information")
                         continue
                     
-                    # Get unit and dpi
+                    # Calculate dimensions
                     unit = form.cleaned_data.get(f'dimension_unit_{i}', 'pixels')
-                    dpi = form.cleaned_data.get(f'dpi_{i}')
-                    print(f"DEBUG: Unit: {unit}, DPI: {dpi}")
-
-                    # Ensure DPI has a value (default to 300 if not provided)
-                    if dpi is None or dpi == '' or dpi <= 0:
-                        dpi = 300
-                    print(f"DEBUG: Final DPI: {dpi}")
+                    dpi = form.cleaned_data.get(f'dpi_{i}', 300)
                     
-                    width, height = None, None
-
-                    try:
-                        print(f"DEBUG: Starting dimension calculation for unit: {unit}")
-                        if unit == 'pixels':
-                            width = form.cleaned_data.get(f'output_width_{i}')
-                            height = form.cleaned_data.get(f'output_height_{i}')
-                            print(f"DEBUG: Pixel dimensions - Width: {width}, Height: {height}")
-                            if not all([width, height]):
-                                print(f"DEBUG: Missing pixel dimensions")
-                                messages.error(request, f"Image {i+1}: For pixel dimensions, please specify both width and height.")
-                                continue
-                        elif unit == 'cm':
-                            dim_width = form.cleaned_data.get(f'cm_width_{i}')
-                            dim_height = form.cleaned_data.get(f'cm_height_{i}')
-                            print(f"DEBUG: CM dimensions - Width: {dim_width}, Height: {dim_height}")
-                            if not all([dim_width, dim_height]):
-                                print(f"DEBUG: Missing CM dimensions")
-                                messages.error(request, f"Image {i+1}: For cm dimensions, please specify both width and height.")
-                                continue
-                            if dim_width <= 0 or dim_height <= 0:
-                                print(f"DEBUG: Invalid CM dimensions (non-positive)")
-                                messages.error(request, f"Image {i+1}: Physical dimensions must be positive")
-                                continue
-                            width = int(round(dim_width * dpi / 2.54))
-                            height = int(round(dim_height * dpi / 2.54))
-                            print(f"DEBUG: Calculated pixel dimensions from CM - Width: {width}, Height: {height}")
-                        elif unit == 'inch':
-                            dim_width = form.cleaned_data.get(f'inch_width_{i}')
-                            dim_height = form.cleaned_data.get(f'inch_height_{i}')
-                            print(f"DEBUG: Inch dimensions - Width: {dim_width}, Height: {dim_height}")
-                            if not all([dim_width, dim_height]):
-                                print(f"DEBUG: Missing inch dimensions")
-                                messages.error(request, f"Image {i+1}: For inch dimensions, please specify both width and height.")
-                                continue
-                            if dim_width <= 0 or dim_height <= 0:
-                                print(f"DEBUG: Invalid inch dimensions (non-positive)")
-                                messages.error(request, f"Image {i+1}: Physical dimensions must be positive")
-                                continue
-                            width = int(round(dim_width * dpi))
-                            height = int(round(dim_height * dpi))
-                            print(f"DEBUG: Calculated pixel dimensions from Inch - Width: {width}, Height: {height}")
-                        
-                        # Validate final dimensions
-                        print(f"DEBUG: Final dimensions - Width: {width}, Height: {height}")
-                        if not all([width, height]) or width <= 0 or height <= 0:
-                            print(f"DEBUG: Invalid final dimensions")
-                            messages.error(request, f"Image {i+1}: Invalid final dimensions calculated.")
-                            continue
-                            
-                    except (ValueError, TypeError) as e:
-                        print(f"DEBUG: Dimension calculation error: {str(e)}")
-                        print(f"DEBUG: Dimension calculation error type: {type(e)}")
-                        import traceback
-                        print(f"DEBUG: Dimension calculation traceback: {traceback.format_exc()}")
-                        messages.error(request, f"Image {i+1}: Invalid dimension values")
+                    width, height = calculate_dimensions(
+                        original_info, unit, dpi,
+                        form.cleaned_data.get(f'output_width_{i}'),
+                        form.cleaned_data.get(f'output_height_{i}'),
+                        form.cleaned_data.get(f'cm_width_{i}'),
+                        form.cleaned_data.get(f'cm_height_{i}'),
+                        form.cleaned_data.get(f'inch_width_{i}'),
+                        form.cleaned_data.get(f'inch_height_{i}')
+                    )
+                    
+                    if not width or not height:
+                        messages.error(request, f"Image {i+1}: Invalid dimensions")
                         continue
                     
-                    # Create image processing request
+                    # Additional validation for Cloudinary upload
                     try:
-                        print(f"DEBUG: Starting ImageProcessingRequest creation")
-                        print(f"DEBUG: Image file object: {image_file}")
-                        print(f"DEBUG: Image file name: {image_file.name if image_file else 'None'}")
-                        print(f"DEBUG: Image file size: {image_file.size if image_file else 'None'}")
-                        print(f"DEBUG: Session: {session}")
-                        print(f"DEBUG: Width: {width}, Height: {height}, DPI: {dpi}")
-                        
-                        # Additional validation before creating the request
-                        if not image_file or not image_file.name:
-                            print(f"DEBUG: Invalid file object or name")
-                            messages.error(request, f"Image {i+1}: Invalid file object")
+                        # Validate file format
+                        if not image_file.content_type.startswith('image/'):
+                            messages.error(request, f"Image {i+1}: Invalid file format. Please upload an image file.")
                             continue
-                            
-                        if not width or not height:
-                            print(f"DEBUG: Invalid dimensions")
-                            messages.error(request, f"Image {i+1}: Invalid dimensions calculated")
-                            continue
-                            
-                        print(f"DEBUG: Creating ImageProcessingRequest with all validated data")
                         
-                        # Additional validation for Cloudinary upload
+                        # Check file size (Cloudinary has limits)
+                        if image_file.size > 100 * 1024 * 1024:  # 100MB limit
+                            messages.error(request, f"Image {i+1}: File too large. Maximum size is 100MB.")
+                            continue
+                        
+                        # Validate image format using Pillow
                         try:
-                            # Validate file format
-                            if not image_file.content_type.startswith('image/'):
-                                print(f"DEBUG: Invalid content type: {image_file.content_type}")
-                                messages.error(request, f"Image {i+1}: Invalid file format. Please upload an image file.")
-                                continue
-                            
-                            # Check file size (Cloudinary has limits)
-                            if image_file.size > 100 * 1024 * 1024:  # 100MB limit
-                                print(f"DEBUG: File too large: {image_file.size} bytes")
-                                messages.error(request, f"Image {i+1}: File too large. Maximum size is 100MB.")
-                                continue
-                            
-                            # Validate image format using Pillow
-                            try:
-                                # Reset file pointer
-                                image_file.seek(0)
-                                # Try to open with Pillow to validate
-                                with Image.open(image_file) as img:
-                                    img.verify()  # Verify the image
-                                # Reset file pointer again
-                                image_file.seek(0)
-                                print(f"DEBUG: Image validation successful with Pillow")
-                            except Exception as img_error:
-                                print(f"DEBUG: Pillow validation failed: {str(img_error)}")
-                                messages.error(request, f"Image {i+1}: Invalid image file. Please upload a valid image.")
-                                continue
-                            
-                        except Exception as validation_error:
-                            print(f"DEBUG: File validation error: {str(validation_error)}")
-                            messages.error(request, f"Image {i+1}: File validation failed.")
+                            # Reset file pointer
+                            image_file.seek(0)
+                            # Try to open with Pillow to validate
+                            with Image.open(image_file) as img:
+                                img.verify()  # Verify the image
+                            # Reset file pointer again
+                            image_file.seek(0)
+                        except Exception as img_error:
+                            messages.error(request, f"Image {i+1}: Invalid image file. Please upload a valid image.")
                             continue
                         
-                        img_request = ImageProcessingRequest.objects.create(
-                            session=session,
-                            original_image=image_file,
-                            output_width=width,
-                            output_height=height,
-                            dpi=dpi,
-                            dimension_unit=unit,
-                            dimension_width=form.cleaned_data.get(f'cm_width_{i}') if unit == 'cm' else form.cleaned_data.get(f'inch_width_{i}'),
-                            dimension_height=form.cleaned_data.get(f'cm_height_{i}') if unit == 'cm' else form.cleaned_data.get(f'inch_height_{i}'),
-                            original_filename=image_file.name,
-                            original_width=original_info['width'],
-                            original_height=original_info['height'],
-                            original_file_size=original_info['size'],
-                        )
-                        print(f"DEBUG: Successfully created ImageProcessingRequest: {img_request.id}")
-                    except OSError as e:
-                        print(f"DEBUG: OSError during ImageProcessingRequest creation: {str(e)}")
-                        print(f"DEBUG: OSError type: {type(e)}")
-                        import traceback
-                        print(f"DEBUG: OSError traceback: {traceback.format_exc()}")
-                        if "Read-only file system" in str(e):
-                            messages.error(request, f"Image {i+1}: File storage configuration error. Please check Cloudinary settings.")
-                        else:
-                            messages.error(request, f"Image {i+1}: File system error: {str(e)}")
+                    except Exception as validation_error:
+                        messages.error(request, f"Image {i+1}: File validation failed.")
                         continue
-                    except Exception as e:
-                        print(f"DEBUG: Exception during ImageProcessingRequest creation: {str(e)}")
-                        print(f"DEBUG: Exception type: {type(e)}")
-                        import traceback
-                        print(f"DEBUG: Exception traceback: {traceback.format_exc()}")
-                        messages.error(request, f"Image {i+1}: Error creating request: {str(e)}")
-                        continue
+                    
+                    img_request = ImageProcessingRequest.objects.create(
+                        session=session,
+                        original_image=image_file,
+                        output_width=width,
+                        output_height=height,
+                        dpi=dpi,
+                        dimension_unit=unit,
+                        dimension_width=form.cleaned_data.get(f'cm_width_{i}') if unit == 'cm' else form.cleaned_data.get(f'inch_width_{i}'),
+                        dimension_height=form.cleaned_data.get(f'cm_height_{i}') if unit == 'cm' else form.cleaned_data.get(f'inch_height_{i}'),
+                        original_filename=image_file.name,
+                        original_width=original_info['width'],
+                        original_height=original_info['height'],
+                        original_file_size=original_info['size'],
+                    )
                     
                     # Check for file size target
                     target_file_size_kb = form.cleaned_data.get(f'target_file_size_kb_{i}')
-                    print(f"DEBUG: Target file size KB: {target_file_size_kb}")
                     
                     if target_file_size_kb and target_file_size_kb > 0:
-                        print(f"DEBUG: Processing with size limit: {target_file_size_kb} KB")
                         target_size_bytes = target_file_size_kb * 1024
                         try:
                             success, error_message = process_image_with_size_limit(
                                 img_request,
                                 target_size_bytes=target_size_bytes
                             )
-                            print(f"DEBUG: Size-limited processing result: {success}, {error_message}")
                         except Exception as e:
-                            print(f"DEBUG: Error in size-limited processing: {str(e)}")
-                            print(f"DEBUG: Error type: {type(e)}")
-                            import traceback
-                            print(f"DEBUG: Size-limited processing traceback: {traceback.format_exc()}")
                             success, error_message = False, f"Processing error: {str(e)}"
                     else:
-                        print(f"DEBUG: Processing with standard method")
                         # Process with standard method
                         try:
                             success, error_message = process_image(img_request)
-                            print(f"DEBUG: Standard processing result: {success}, {error_message}")
+                            if not success:
+                                print(f"DEBUG: Image processing failed: {error_message}")
                         except Exception as e:
-                            print(f"DEBUG: Error in standard processing: {str(e)}")
-                            print(f"DEBUG: Error type: {type(e)}")
-                            import traceback
-                            print(f"DEBUG: Standard processing traceback: {traceback.format_exc()}")
+                            print(f"DEBUG: Exception in image processing: {str(e)}")
                             success, error_message = False, f"Processing error: {str(e)}"
                     
                     if success:
-                        print(f"DEBUG: Image {i+1} processed successfully")
                         processed_count += 1
                     else:
-                        print(f"DEBUG: Image {i+1} processing failed: {error_message}")
                         messages.error(request, f"Image {i+1}: {error_message}")
                 else:
-                    print(f"DEBUG: No file found for field {image_field}")
-            
-            print(f"DEBUG: Processing complete. Successfully processed: {processed_count}/{num_images}")
+                    messages.error(request, f"Image {i+1}: No file uploaded")
             
             if processed_count > 0:
-                print(f"DEBUG: Redirecting to results page for session {session.session_id}")
                 messages.success(request, f"Successfully processed {processed_count} image(s)")
                 return redirect('processing_results', session_id=session.session_id)
             else:
-                print(f"DEBUG: No images processed successfully, deleting session")
                 messages.error(request, "No images were processed successfully")
                 session.delete()  # Clean up empty session
         else:
-            print("DEBUG: Form is invalid")
-            print(f"DEBUG: Form errors: {form.errors}")
-            print(f"DEBUG: Form non-field errors: {form.non_field_errors()}")
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
-        print("DEBUG: GET request, creating new form")
         form = BulkImageProcessingForm(num_images=num_images)
     
-    print("DEBUG: Rendering home template")
     context = {
         'form': form,
         'num_images': num_images,
@@ -349,7 +168,6 @@ def home(request):
         'preset_categories': get_preset_categories(),
         'presets_json': json.dumps(PRESET_SIZES),
     }
-    print("DEBUG: ===== HOME VIEW ENDED =====")
     return render(request, 'image_processor/home.html', context)
 
 def processing_results(request, session_id):
@@ -569,9 +387,7 @@ def reprocess_image(request, image_id):
                 session.delete()  # Clean up empty session on failure
                 # Fall through to re-render form with errors
         else:
-            print("[DEBUG] Reprocess form is invalid:")
-            print(form.errors)
-            print(form.non_field_errors())
+            pass  # Fall through to re-render form with errors
     else:
         # Pre-populate form with original settings
         initial_data = {

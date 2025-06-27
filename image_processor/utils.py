@@ -57,77 +57,107 @@ def process_image(image_request):
         if image_request.dpi <= 0:
             return False, "Invalid DPI value"
         
+        print(f"DEBUG: Starting image processing for {image_request.original_filename}")
+        print(f"DEBUG: Output dimensions: {image_request.output_width}x{image_request.output_height}")
+        print(f"DEBUG: DPI: {image_request.dpi}")
+        
         # Open the original image - use the file object directly instead of path
         # This works with both local storage and cloud storage (Cloudinary)
-        with Image.open(image_request.original_image) as img:
-            # Convert to RGB if necessary (for JPEG compatibility)
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
+        try:
+            print(f"DEBUG: File object type: {type(image_request.original_image)}")
+            print(f"DEBUG: File object name: {getattr(image_request.original_image, 'name', 'No name')}")
+            print(f"DEBUG: File object size: {getattr(image_request.original_image, 'size', 'No size')}")
             
-            # Resize the image
-            resized_img = img.resize(
-                (image_request.output_width, image_request.output_height),
-                Image.Resampling.LANCZOS
-            )
+            # Reset file pointer to beginning
+            if hasattr(image_request.original_image, 'seek'):
+                image_request.original_image.seek(0)
+                print(f"DEBUG: File pointer reset to beginning")
             
-            # Calculate DPI based on physical dimensions if provided
-            dpi_value = image_request.dpi
-            if image_request.dimension_width and image_request.dimension_height:
-                try:
-                    # Convert physical dimensions to inches if in cm
-                    if image_request.dimension_unit == 'cm':
-                        width_inches = image_request.dimension_width / 2.54
-                        height_inches = image_request.dimension_height / 2.54
-                    else:
-                        width_inches = image_request.dimension_width
-                        height_inches = image_request.dimension_height
-                    
-                    # Validate physical dimensions
-                    if width_inches <= 0 or height_inches <= 0:
-                        return False, "Invalid physical dimensions"
-                    
-                    # Calculate DPI based on pixel dimensions and physical dimensions
-                    width_dpi = image_request.output_width / width_inches
-                    height_dpi = image_request.output_height / height_inches
-                    dpi_value = int(min(width_dpi, height_dpi))
-                    
-                    # Validate calculated DPI
-                    if dpi_value <= 0:
-                        dpi_value = image_request.dpi  # Fallback to original DPI
+            with Image.open(image_request.original_image) as img:
+                print(f"DEBUG: Original image opened successfully")
+                print(f"DEBUG: Original size: {img.width}x{img.height}, Mode: {img.mode}")
+                
+                # Convert to RGB if necessary (for JPEG compatibility)
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                    print(f"DEBUG: Converted image to RGB mode")
+                
+                # Resize the image
+                resized_img = img.resize(
+                    (image_request.output_width, image_request.output_height),
+                    Image.Resampling.LANCZOS
+                )
+                print(f"DEBUG: Image resized successfully")
+                
+                # Calculate DPI based on physical dimensions if provided
+                dpi_value = image_request.dpi
+                if image_request.dimension_width and image_request.dimension_height:
+                    try:
+                        # Convert physical dimensions to inches if in cm
+                        if image_request.dimension_unit == 'cm':
+                            width_inches = image_request.dimension_width / 2.54
+                            height_inches = image_request.dimension_height / 2.54
+                        else:
+                            width_inches = image_request.dimension_width
+                            height_inches = image_request.dimension_height
                         
-                except (ValueError, ZeroDivisionError):
-                    dpi_value = image_request.dpi  # Fallback to original DPI
-            
-            # Save the processed image
-            output_buffer = io.BytesIO()
-            resized_img.save(
-                output_buffer, 
-                format='JPEG', 
-                quality=95,
-                dpi=(dpi_value, dpi_value),
-                optimize=True
-            )
-            
-            # Create filename for processed image
-            original_name = os.path.splitext(image_request.original_filename)[0]
-            processed_filename = f"{original_name}_resized_{image_request.output_width}x{image_request.output_height}.jpg"
-            
-            # Save to model
-            image_request.processed_image.save(
-                processed_filename,
-                ContentFile(output_buffer.getvalue()),
-                save=False
-            )
-            
-            # Update processing status
-            image_request.is_processed = True
-            image_request.processed_at = timezone.now()
-            image_request.file_size = len(output_buffer.getvalue())
-            image_request.save()
-            
-            return True, "Image processed successfully"
+                        # Validate physical dimensions
+                        if width_inches <= 0 or height_inches <= 0:
+                            return False, "Invalid physical dimensions"
+                        
+                        # Calculate DPI based on pixel dimensions and physical dimensions
+                        width_dpi = image_request.output_width / width_inches
+                        height_dpi = image_request.output_height / height_inches
+                        dpi_value = int(min(width_dpi, height_dpi))
+                        
+                        # Validate calculated DPI
+                        if dpi_value <= 0:
+                            dpi_value = image_request.dpi  # Fallback to original DPI
+                            
+                    except (ValueError, ZeroDivisionError):
+                        dpi_value = image_request.dpi  # Fallback to original DPI
+                
+                print(f"DEBUG: Using DPI: {dpi_value}")
+                
+                # Save the processed image
+                output_buffer = io.BytesIO()
+                resized_img.save(
+                    output_buffer, 
+                    format='JPEG', 
+                    quality=95,
+                    dpi=(dpi_value, dpi_value),
+                    optimize=True
+                )
+                print(f"DEBUG: Image saved to buffer successfully")
+                
+                # Create filename for processed image
+                original_name = os.path.splitext(image_request.original_filename)[0]
+                processed_filename = f"{original_name}_resized_{image_request.output_width}x{image_request.output_height}.jpg"
+                print(f"DEBUG: Processed filename: {processed_filename}")
+                
+                # Save to model
+                image_request.processed_image.save(
+                    processed_filename,
+                    ContentFile(output_buffer.getvalue()),
+                    save=False
+                )
+                print(f"DEBUG: Image saved to model successfully")
+                
+                # Update processing status
+                image_request.is_processed = True
+                image_request.processed_at = timezone.now()
+                image_request.file_size = len(output_buffer.getvalue())
+                image_request.save()
+                print(f"DEBUG: Processing status updated successfully")
+                
+                return True, "Image processed successfully"
+                
+        except Exception as img_error:
+            print(f"DEBUG: Error during image processing: {str(img_error)}")
+            return False, f"Error processing image: {str(img_error)}"
             
     except Exception as e:
+        print(f"DEBUG: General error in process_image: {str(e)}")
         return False, f"Error processing image: {str(e)}"
 
 def create_zip_file(session):

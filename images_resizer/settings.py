@@ -209,14 +209,8 @@ CLOUDINARY_CLOUD_NAME = get_env_variable('CLOUDINARY_CLOUD_NAME')
 CLOUDINARY_API_KEY = get_env_variable('CLOUDINARY_API_KEY')
 CLOUDINARY_API_SECRET = get_env_variable('CLOUDINARY_API_SECRET')
 
-# Debug: Print Cloudinary configuration
-print(f"DEBUG: CLOUDINARY_CLOUD_NAME = {CLOUDINARY_CLOUD_NAME}")
-print(f"DEBUG: CLOUDINARY_API_KEY = {CLOUDINARY_API_KEY[:5] if CLOUDINARY_API_KEY else 'NOT SET'}...")
-print(f"DEBUG: CLOUDINARY_API_SECRET = {CLOUDINARY_API_SECRET[:5] if CLOUDINARY_API_SECRET else 'NOT SET'}...")
-
 # Configure media storage based on environment
 if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
-    print("DEBUG: Using Cloudinary storage")
     # Use Cloudinary for media storage (production/Vercel)
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
@@ -239,19 +233,12 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
         'MAGIC_FILE_PATH': 'magic',
     })
     
-    # Debug: Verify Cloudinary configuration
-    print(f"DEBUG: CLOUDINARY_STORAGE config: {CLOUDINARY_STORAGE}")
-    print(f"DEBUG: MEDIA_ROOT: {MEDIA_ROOT}")
-    
     # Import and verify Cloudinary storage
     try:
         from cloudinary_storage.storage import MediaCloudinaryStorage
-        print(f"DEBUG: Cloudinary storage imported successfully")
     except ImportError as e:
-        print(f"DEBUG: Error importing Cloudinary storage: {e}")
         raise
 else:
-    print("DEBUG: Using local storage")
     # Use local media storage (development only)
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
@@ -283,10 +270,8 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     try:
         # Try a simple API call to test the connection
         result = cloudinary.api.ping()
-        print(f"DEBUG: Cloudinary connection test successful: {result}")
     except Exception as e:
-        print(f"DEBUG: Cloudinary connection test failed: {str(e)}")
-        print(f"DEBUG: This might indicate an issue with Cloudinary credentials")
+        pass  # Silently handle connection test failures
     
     # Additional storage configuration to prevent filesystem fallback
     STORAGES = {
@@ -297,9 +282,6 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
             "BACKEND": "cloudinary_storage.storage.StaticHashedCloudinaryStorage",
         },
     }
-    
-    print("DEBUG: Cloudinary configured successfully")
-    print(f"DEBUG: STORAGES config: {STORAGES}")
 
 # Crispy Forms Settings
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
