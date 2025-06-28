@@ -765,13 +765,13 @@
             </div>
             
             <!-- Submit Button -->
-            <div class="text-center mb-5">
-            <button type="submit" class="btn btn-primary btn-lg" id="process-images-btn">
-                <i class="material-icons me-2">transform</i>
-                Process Images
-            </button>
-        </div>
-    </form>
+            <div class="text-center mb-5" id="process-button-container">
+                <button type="submit" class="btn btn-primary btn-lg" id="process-images-btn">
+                    <i class="material-icons me-2">transform</i>
+                    Process Images
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -1254,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', function() {
         newSlot.id = `image-slot-${newIndex}`;
         newSlot.innerHTML = newSlotHTML;
 
-        // Update the slot number
+        // Update the slot number correctly
         newSlot.querySelector('.slot-number').textContent = newIndex + 1;
         
         container.appendChild(newSlot);
@@ -1263,6 +1263,9 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeNewSlot(newIndex);
         
         currentSlotCount++;
+        
+        // Update all slot numbers to ensure they are sequential
+        updateAllSlotNumbers();
     }
     
     function removeLastSlot() {
@@ -1271,7 +1274,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (lastSlot) {
             lastSlot.remove();
             currentSlotCount--;
+            
+            // Update all slot numbers to ensure they are sequential
+            updateAllSlotNumbers();
         }
+    }
+    
+    function updateAllSlotNumbers() {
+        // Update slot numbers for all existing slots to ensure they are sequential
+        const slots = document.querySelectorAll('[id^="image-slot-"]');
+        slots.forEach((slot, index) => {
+            const slotNumber = slot.querySelector('.slot-number');
+            if (slotNumber) {
+                slotNumber.textContent = index + 1;
+            }
+        });
     }
     
     function updateSlotCount() {
@@ -1279,6 +1296,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (countDisplay) {
             const slotText = currentSlotCount === 1 ? 'slot' : 'slots';
             countDisplay.textContent = `Currently showing ${currentSlotCount} upload ${slotText}. Each image can have different settings.`;
+        }
+        
+        // Update the form data attribute
+        const form = document.getElementById('main-upload-form');
+        if (form) {
+            form.dataset.numImages = currentSlotCount;
         }
     }
     

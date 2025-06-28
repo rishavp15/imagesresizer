@@ -4,6 +4,26 @@
 
 {% block content %}
 <div class="container">
+    <!-- Professional Breadcrumb Navigation -->
+    <div class="breadcrumb-nav">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}" class="breadcrumb-link">
+                        <i class="material-icons breadcrumb-icon">home</i>
+                        <span class="breadcrumb-text">Home</span>
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <span class="breadcrumb-link active">
+                        <i class="material-icons breadcrumb-icon">info</i>
+                        <span class="breadcrumb-text">About</span>
+                    </span>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
     <h1 class="display-4 mb-3">About imagesresizer.tech</h1>
     <p class="lead text-muted">
         Bulk image resizing with privacy guaranteed. We do not save or store your images. Process multiple images in one go, securely and privately.

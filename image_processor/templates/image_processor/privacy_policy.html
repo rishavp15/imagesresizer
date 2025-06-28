@@ -2,7 +2,31 @@
 {% block title %}Privacy Policy - imagesresizer.tech{% endblock %}
 {% block content %}
 <div class="container my-5">
+    <!-- Professional Breadcrumb Navigation -->
+    <div class="breadcrumb-nav">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}" class="breadcrumb-link">
+                        <i class="material-icons breadcrumb-icon">home</i>
+                        <span class="breadcrumb-text">Home</span>
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <span class="breadcrumb-link active">
+                        <i class="material-icons breadcrumb-icon">policy</i>
+                        <span class="breadcrumb-text">Privacy Policy</span>
+                    </span>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
     <h1 class="mb-4">Privacy Policy</h1>
+    <div class="text-center mb-4">
+        <a href="{% url 'home' %}" class="btn btn-link">Home</a>
+        <a href="{% url 'about' %}" class="btn btn-link">About</a>
+    </div>
     <p>At <strong>imagesresizer.tech</strong>, your privacy is our top priority. This Privacy Policy explains how we handle your data and your rights as a user.</p>
     <h2>1. No Image Storage</h2>
     <p>We <strong>do not save or store your images</strong> on our servers. All image processing is performed securely and your files are deleted immediately after processing.</p>

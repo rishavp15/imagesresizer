@@ -2,7 +2,31 @@
 {% block title %}Contact Us - imagesresizer.tech{% endblock %}
 {% block content %}
 <div class="container my-5">
+    <!-- Professional Breadcrumb Navigation -->
+    <div class="breadcrumb-nav">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}" class="breadcrumb-link">
+                        <i class="material-icons breadcrumb-icon">home</i>
+                        <span class="breadcrumb-text">Home</span>
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <span class="breadcrumb-link active">
+                        <i class="material-icons breadcrumb-icon">mail</i>
+                        <span class="breadcrumb-text">Contact</span>
+                    </span>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
     <h1 class="mb-4">Contact Us</h1>
+    <div class="text-center mb-4">
+        <a href="{% url 'home' %}" class="btn btn-link">Home</a>
+        <a href="{% url 'about' %}" class="btn btn-link">About</a>
+    </div>
     <p class="mb-4">Have a question, suggestion, or need help? Fill out the form below or email us at <a href="mailto:support@imagesresizer.tech">support@imagesresizer.tech</a>.</p>
     {% if request.method == 'POST' %}
         <div class="alert alert-success">Thank you for your message! We'll get back to you soon.</div>

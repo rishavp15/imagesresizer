@@ -2,7 +2,31 @@
 {% block title %}Blog - imagesresizer.tech{% endblock %}
 {% block content %}
 <div class="container my-5">
+    <!-- Professional Breadcrumb Navigation -->
+    <div class="breadcrumb-nav">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}" class="breadcrumb-link">
+                        <i class="material-icons breadcrumb-icon">home</i>
+                        <span class="breadcrumb-text">Home</span>
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <span class="breadcrumb-link active">
+                        <i class="material-icons breadcrumb-icon">article</i>
+                        <span class="breadcrumb-text">Blog</span>
+                    </span>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
     <h1 class="mb-4">Blog</h1>
+    <div class="text-center mb-4">
+        <a href="{% url 'home' %}" class="btn btn-link">Home</a>
+        <a href="{% url 'about' %}" class="btn btn-link">About</a>
+    </div>
     <article class="mb-5">
         <h2>Why Privacy Matters in Online Image Tools</h2>
         <p class="text-muted">Published: {{ today|date:"Y-m-d" }}</p>

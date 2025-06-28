@@ -6,6 +6,32 @@
 
 {% block content %}
 <div class="container my-5">
+    <!-- Professional Breadcrumb Navigation -->
+    <div class="breadcrumb-nav">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}" class="breadcrumb-link">
+                        <i class="material-icons breadcrumb-icon">home</i>
+                        <span class="breadcrumb-text">Home</span>
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'processing_results' original_request.session.session_id %}" class="breadcrumb-link">
+                        <i class="material-icons breadcrumb-icon">transform</i>
+                        <span class="breadcrumb-text">Results</span>
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <span class="breadcrumb-link active">
+                        <i class="material-icons breadcrumb-icon">replay</i>
+                        <span class="breadcrumb-text">Re-process</span>
+                    </span>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
     <h1 class="main-title mb-4">Re-process Image</h1>
     <div class="text-center mb-4">
         <a href="{% url 'home' %}" class="btn btn-link">Home</a>

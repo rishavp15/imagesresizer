@@ -2,6 +2,26 @@
 {% block title %}Terms of Service - imagesresizer.tech{% endblock %}
 {% block content %}
 <div class="container my-5">
+    <!-- Professional Breadcrumb Navigation -->
+    <div class="breadcrumb-nav">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}" class="breadcrumb-link">
+                        <i class="material-icons breadcrumb-icon">home</i>
+                        <span class="breadcrumb-text">Home</span>
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <span class="breadcrumb-link active">
+                        <i class="material-icons breadcrumb-icon">gavel</i>
+                        <span class="breadcrumb-text">Terms</span>
+                    </span>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
     <h1 class="mb-4">Terms of Service</h1>
     <h2>1. Acceptance of Terms</h2>
     <p>By using imagesresizer.tech, you agree to these Terms of Service. If you do not agree, please do not use our website.</p>

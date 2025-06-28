@@ -303,11 +303,114 @@
             align-items: center;
             gap: 6px;
         }
+        
+        /* Professional Breadcrumb Navigation */
+        .breadcrumb-nav {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .breadcrumb-nav .breadcrumb {
+            background: none;
+            padding: 0;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+        
+        .breadcrumb-nav .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .breadcrumb-nav .breadcrumb-item + .breadcrumb-item::before {
+            content: "/";
+            color: #6c757d;
+            font-weight: 500;
+            margin: 0 12px;
+            font-size: 1.1rem;
+        }
+        
+        .breadcrumb-nav .breadcrumb-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: rgba(25, 118, 210, 0.05);
+        }
+        
+        .breadcrumb-nav .breadcrumb-link:hover {
+            background: rgba(25, 118, 210, 0.1);
+            color: #1565c0;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
+        }
+        
+        .breadcrumb-nav .breadcrumb-link.active {
+            background: #1976d2;
+            color: white;
+            pointer-events: none;
+        }
+        
+        .breadcrumb-nav .breadcrumb-link.active:hover {
+            background: #1976d2;
+            color: white;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .breadcrumb-nav .breadcrumb-icon {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .breadcrumb-nav .breadcrumb-text {
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .breadcrumb-nav {
+                padding: 12px 16px;
+                margin-bottom: 20px;
+            }
+            
+            .breadcrumb-nav .breadcrumb-item + .breadcrumb-item::before {
+                margin: 0 8px;
+            }
+            
+            .breadcrumb-nav .breadcrumb-link {
+                padding: 4px 8px;
+                font-size: 0.9rem;
+            }
+            
+            .breadcrumb-nav .breadcrumb-icon {
+                font-size: 16px;
+            }
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body class="d-flex flex-column h-100">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); z-index: 9999; justify-content: center; align-items: center;">
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="mt-3 text-primary fw-medium">Processing...</div>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary" id="main-navbar" role="navigation" aria-label="Main Navigation">
         <div class="container">
@@ -419,6 +522,21 @@
             }
         };
         
+        // Loading overlay functions
+        function showLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+            }
+        }
+        
+        function hideLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+        }
+        
         // Auto-dismiss alerts after 5 seconds
         document.addEventListener('DOMContentLoaded', function() {
             const alerts = document.querySelectorAll('.alert');
@@ -427,6 +545,33 @@
                     const bsAlert = new bootstrap.Alert(alert);
                     bsAlert.close();
                 }, 5000);
+            });
+            
+            // Show loading on form submissions
+            const forms = document.querySelectorAll('form');
+            forms.forEach(function(form) {
+                form.addEventListener('submit', function() {
+                    showLoading();
+                });
+            });
+            
+            // Show loading on navigation links (except for same-page anchors)
+            const navLinks = document.querySelectorAll('a[href]:not([href^="#"]):not([href^="javascript:"]):not([href^="mailto:"]):not([href^="tel:"])');
+            navLinks.forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    // Don't show loading for external links or if it's a download link
+                    if (link.hostname === window.location.hostname && 
+                        !link.hasAttribute('download') && 
+                        !link.href.includes('#') &&
+                        !link.classList.contains('btn-close')) {
+                        showLoading();
+                    }
+                });
+            });
+            
+            // Hide loading when page is fully loaded
+            window.addEventListener('load', function() {
+                hideLoading();
             });
             
             // Ensure navbar works properly
