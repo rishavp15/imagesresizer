@@ -26,10 +26,11 @@ def home(request):
     """
     Main view for bulk image processing
     """
-    num_images = int(request.GET.get('num_images', 1))
-    num_images = max(1, min(num_images, 20))  # Limit between 1 and 20
-    
     if request.method == 'POST':
+        # Get num_images from POST data (form submission)
+        num_images = int(request.POST.get('num_images', 1))
+        num_images = max(1, min(num_images, 20))  # Limit between 1 and 20
+        
         form = BulkImageProcessingForm(request.POST, request.FILES, num_images=num_images)
         
         if form.is_valid():
@@ -175,6 +176,9 @@ def home(request):
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
     else:
+        # GET request - use URL parameter or default to 1
+        num_images = int(request.GET.get('num_images', 1))
+        num_images = max(1, min(num_images, 20))  # Limit between 1 and 20
         form = BulkImageProcessingForm(num_images=num_images)
     
     context = {

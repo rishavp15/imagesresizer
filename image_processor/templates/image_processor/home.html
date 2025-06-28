@@ -402,6 +402,9 @@
               data-num-images="{{ num_images }}" data-max-images="{{ max_images }}">
             {% csrf_token %}
             
+            <!-- Hidden field to track number of images -->
+            <input type="hidden" name="num_images" id="num_images_field" value="{{ num_images }}">
+            
             <div class="image-slots-container">
                 <div class="card mb-4 d-none" id="image-slot-template">
                     <div class="card-body py-4">
@@ -1303,6 +1306,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (form) {
             form.dataset.numImages = currentSlotCount;
         }
+        
+        // Update the hidden field for form submission
+        const numImagesField = document.getElementById('num_images_field');
+        if (numImagesField) {
+            numImagesField.value = currentSlotCount;
+        }
     }
     
     function updateButtonStates() {
@@ -1394,28 +1403,147 @@ document.addEventListener('DOMContentLoaded', function() {
         const dragZone = document.querySelector(`.drag-drop-zone[data-index="${index}"]`);
 
         if (!file) {
-            preview.classList.add('d-none');
-            dragZone.classList.remove('d-none');
+            if (preview) preview.classList.add('d-none');
+            if (dragZone) dragZone.classList.remove('d-none');
             return;
         }
 
-        preview.classList.remove('d-none');
-        dragZone.classList.add('d-none');
-        // ... (rest of the logic from original 'change' event listener)
+        if (preview) preview.classList.remove('d-none');
+        if (dragZone) dragZone.classList.add('d-none');
+
+        // Create preview image
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = preview.querySelector('.preview-img');
+            if (img) {
+                img.src = e.target.result;
+            }
+            
+            // Update file info
+            updateFileInfo(file, index);
+        };
+        reader.readAsDataURL(file);
     }
 
     function handleRemoveImage(index) {
-        // ... (logic from original 'remove-image-btn' click listener)
+        const input = document.getElementById(`id_image_${index}`);
+        const preview = document.getElementById(`preview-${index}`);
+        const dragZone = document.querySelector(`.drag-drop-zone[data-index="${index}"]`);
+        
+        if (input) input.value = '';
+        if (preview) preview.classList.add('d-none');
+        if (dragZone) dragZone.classList.remove('d-none');
     }
 
     function handleUnitChange(index) {
-        // ... (logic from original 'dimension-unit-selector' change listener)
+        const unit = document.getElementById(`id_dimension_unit_${index}`).value;
+        
+        // Hide all dimension fields
+        document.querySelectorAll(`#image-slot-${index} .dimension-fields`).forEach(field => {
+            field.classList.add('d-none');
+        });
+        
+        // Show the appropriate dimension field
+        if (unit === 'pixels') {
+            document.getElementById(`dimension-pixels-${index}`).classList.remove('d-none');
+        } else if (unit === 'cm') {
+            document.getElementById(`dimension-cm-${index}`).classList.remove('d-none');
+        } else if (unit === 'inch') {
+            document.getElementById(`dimension-inch-${index}`).classList.remove('d-none');
+        }
     }
     
     function handleQuickProcess(index) {
-        // ... (logic from quick process button listener)
+        const fileSizeInput = document.getElementById(`id_file_size_${index}`);
+        const widthInput = document.getElementById(`id_output_width_${index}`);
+        const heightInput = document.getElementById(`id_output_height_${index}`);
+        
+        if (!fileSizeInput.value) {
+            alert('Please enter a target file size');
+            return;
+        }
+        
+        if (!widthInput.value || !heightInput.value) {
+            alert('Please enter both width and height dimensions');
+            return;
+        }
+        
+        // Submit the form for this specific image
+        const form = document.getElementById('main-upload-form');
+        const submitBtn = document.getElementById('process-images-btn');
+        
+        // Temporarily change submit button text
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="material-icons me-2">hourglass_empty</i>Processing...';
+        submitBtn.disabled = true;
+        
+        // Submit form
+        form.submit();
     }
     
+    function updateFileInfo(file, index) {
+        // Update filename
+        const filenameElement = document.getElementById(`filename-${index}`);
+        const filenameMobileElement = document.getElementById(`filename-mobile-${index}`);
+        if (filenameElement) filenameElement.textContent = file.name;
+        if (filenameMobileElement) filenameMobileElement.textContent = file.name;
+        
+        // Update filesize
+        const filesizeElement = document.getElementById(`filesize-${index}`);
+        const filesizeMobileElement = document.getElementById(`filesize-mobile-${index}`);
+        const fileSize = utils.formatSize(file.size);
+        if (filesizeElement) filesizeElement.textContent = fileSize;
+        if (filesizeMobileElement) filesizeMobileElement.textContent = fileSize;
+        
+        // Get image dimensions
+        const img = new Image();
+        img.onload = function() {
+            const dimensions = utils.formatDimensions(img.width, img.height);
+            const dimensionsMobile = utils.formatDimensions(img.width, img.height);
+            const ratio = utils.calculateRatio(img.width, img.height);
+            
+            const dimensionsElement = document.getElementById(`dimensions-${index}`);
+            const dimensionsMobileElement = document.getElementById(`dimensions-mobile-${index}`);
+            const ratioElement = document.getElementById(`ratio-${index}`);
+            
+            if (dimensionsElement) dimensionsElement.textContent = dimensions;
+            if (dimensionsMobileElement) dimensionsMobileElement.textContent = dimensionsMobile;
+            if (ratioElement) ratioElement.textContent = ratio;
+        };
+        img.src = URL.createObjectURL(file);
+    }
+
+    // Form submission handling
+    document.getElementById('main-upload-form')?.addEventListener('submit', function(e) {
+        // Validate that at least one image is uploaded
+        const fileInputs = document.querySelectorAll('.image-upload-input');
+        let hasFiles = false;
+        
+        fileInputs.forEach(input => {
+            if (input.files && input.files.length > 0) {
+                hasFiles = true;
+            }
+        });
+        
+        if (!hasFiles) {
+            e.preventDefault();
+            alert('Please upload at least one image before processing.');
+            return;
+        }
+        
+        // Update the number of images field before submission
+        const numImagesField = document.getElementById('num_images_field');
+        if (numImagesField) {
+            numImagesField.value = currentSlotCount;
+        }
+        
+        // Show loading state
+        const submitBtn = document.getElementById('process-images-btn');
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="material-icons me-2">hourglass_empty</i>Processing...';
+            submitBtn.disabled = true;
+        }
+    });
 });
 </script>
 {% endblock %} 
