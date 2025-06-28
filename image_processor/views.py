@@ -40,11 +40,16 @@ def home(request):
             processed_count = 0
             num_images = form.cleaned_data.get('num_images', 1)
             
+            print(f"DEBUG: Processing {num_images} images")
+            print(f"DEBUG: Available files: {list(request.FILES.keys())}")
+            
             for i in range(num_images):
                 image_field = f'image_{i}'
+                print(f"DEBUG: Checking for image field: {image_field}")
                 
                 if image_field in request.FILES:
                     image_file = request.FILES[image_field]
+                    print(f"DEBUG: Found image {i+1}: {image_file.name}")
                     
                     # Validate image
                     is_valid, validation_message = validate_image_file(image_file)
@@ -131,6 +136,7 @@ def home(request):
                     
                     # Check for file size target
                     target_file_size_kb = form.cleaned_data.get(f'target_file_size_kb_{i}')
+                    print(f"DEBUG: Image {i+1} target file size: {target_file_size_kb} KB")
                     
                     if target_file_size_kb and target_file_size_kb > 0:
                         target_size_bytes = target_file_size_kb * 1024

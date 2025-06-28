@@ -11,6 +11,12 @@ class BulkImageProcessingForm(forms.Form):
         num_images = kwargs.pop('num_images', 5)
         super().__init__(*args, **kwargs)
         
+        # Add num_images field to track the number of images
+        self.fields['num_images'] = forms.IntegerField(
+            initial=num_images,
+            widget=forms.HiddenInput()
+        )
+        
         for i in range(num_images):
             self.fields[f'image_{i}'] = forms.ImageField(
                 required=False,

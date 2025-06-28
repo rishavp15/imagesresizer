@@ -324,6 +324,46 @@
 
         
     }
+    
+    .btn:focus, .nav-link:focus, .form-control:focus, .form-select:focus {
+        outline: 2px solid #1976d2;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 2px #1976d2;
+    }
+    
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    /* Process Button Styling */
+    #process-button-container {
+        margin-top: 30px;
+        padding: 20px 0;
+        border-top: 1px solid #e9ecef;
+        background: linear-gradient(135deg, #f8f9fa, #ffffff);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    #process-images-btn {
+        min-width: 200px;
+        font-size: 1.1rem;
+        padding: 15px 30px;
+        box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    #process-images-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(25, 118, 210, 0.4);
+    }
+    
+    #process-images-btn:disabled {
+        transform: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
 </style>
 {% endblock %}
 
@@ -576,7 +616,7 @@
                                 </div>
                                 
                             <!-- Hidden fields for form submission -->
-                            <input type="hidden" name="target_file_size_kb___INDEX__" id="hidden_file_size___INDEX__">
+                            <input type="hidden" name="target_file_size_kb___INDEX__" id="id_target_file_size_kb___INDEX__">
                         </div>
                     </div>
                 </div>
@@ -760,12 +800,11 @@
                             </div>
                             
                         <!-- Hidden fields for form submission -->
-                        <input type="hidden" name="target_file_size_kb_{{ i }}" id="hidden_file_size_{{ i }}">
+                        <input type="hidden" name="target_file_size_kb_{{ i }}" id="id_target_file_size_kb_{{ i }}">
                     </div>
                 </div>
             </div>
             {% endfor %}
-            </div>
             
             <!-- Submit Button -->
             <div class="text-center mb-5" id="process-button-container">
@@ -773,6 +812,7 @@
                     <i class="material-icons me-2">transform</i>
                     Process Images
                 </button>
+            </div>
             </div>
         </form>
     </div>
@@ -1115,7 +1155,9 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', function() {
             const index = this.dataset.index;
             const sizeKB = this.value;
-            document.getElementById(`hidden_file_size_${index}`).value = sizeKB;
+            // Update the form field
+            const formField = document.getElementById(`id_target_file_size_kb_${index}`);
+            if (formField) formField.value = sizeKB;
         });
     });
     
