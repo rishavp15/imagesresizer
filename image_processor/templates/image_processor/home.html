@@ -364,6 +364,14 @@
         transform: none;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+    
+    /* Debug styling for image-slots-container */
+    .image-slots-container {
+        min-height: 100px;
+        border: 1px dashed #e0e0e0;
+        padding: 10px;
+        margin-bottom: 20px;
+    }
 </style>
 {% endblock %}
 
@@ -1290,6 +1298,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const template = document.getElementById('image-slot-template');
         const newIndex = currentSlotCount;
 
+        console.log(`DEBUG: Adding new slot with index ${newIndex}`);
+        console.log(`DEBUG: Container before adding:`, container);
+
         // Create new slot from template
         let newSlotHTML = template.innerHTML;
         newSlotHTML = newSlotHTML.replace(/__INDEX__/g, newIndex);
@@ -1304,6 +1315,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         container.appendChild(newSlot);
         
+        console.log(`DEBUG: Slot added. Container after adding:`, container);
+        console.log(`DEBUG: Total slots in container:`, container.querySelectorAll('[id^="image-slot-"]').length);
+        
         // Initialize event listeners for the new slot
         initializeNewSlot(newIndex);
         
@@ -1311,6 +1325,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Update all slot numbers to ensure they are sequential
         updateAllSlotNumbers();
+        
+        // Debug: Check process button position
+        const processButton = document.getElementById('process-button-container');
+        console.log(`DEBUG: Process button container:`, processButton);
+        console.log(`DEBUG: Process button parent:`, processButton?.parentElement);
+        console.log(`DEBUG: Process button is in image-slots-container:`, container.contains(processButton));
     }
     
     function removeLastSlot() {
